@@ -50,37 +50,37 @@
             "fa_icon": "fas fa-dna",
             "description": "Reference genome related files and options required for the workflow.",
             "properties": {
-                "genome": {
-                    "type": "string",
-                    "description": "Name of iGenomes reference.",
-                    "fa_icon": "fas fa-book",
-                    "help_text": "If using a reference genome configured in the pipeline using iGenomes, use this parameter to give the ID for the reference. This is then used to build the full paths for all required reference genome files e.g. `--genome GRCh38`. \n\nSee the [nf-core website docs](https://nf-co.re/usage/reference_genomes) for more details."
-                },
-                "fasta": {
+                "genomes_fna_dir": {
                     "type": "string",
                     "format": "file-path",
-                    "mimetype": "text/plain",
-                    "pattern": "^\\S+\\.fn?a(sta)?(\\.gz)?$",
-                    "description": "Path to FASTA genome file.",
-                    "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have a BWA index available this will be generated for you automatically. Combine with `--save_reference` to save BWA index for future runs.",
+                    "description": "Directory with genome fasta files (contigs)",
+                    "help_text": "Files in this directory will be concatenated into one large file which will be the target of mapping read files",
                     "fa_icon": "far fa-file-code"
                 },
-                "igenomes_base": {
+                "genomes_fna_ext": {
                     "type": "string",
-                    "format": "directory-path",
-                    "description": "Directory / URL base for iGenomes references.",
-                    "default": "s3://ngi-igenomes/igenomes",
-                    "fa_icon": "fas fa-cloud-download-alt",
-                    "hidden": true
+                    "default": "/*.fna.gz",
+                    "description": "File suffix for genome fasta files",
+                    "help_text": "File pattern that is used to search for files (default: `\"/*.fna.gz\"`).\n\nPlease note:\n\n1. The prepended slash (`/`) is required\n2. The star (`*`) is the required wildcard for genome names\n3. The pattern must be enclosed in quotes:\n\n```bash\n--genomes_fna_dir \"genomes\" --genomes_fna_ext \"/*.fna.gz\"\n```"
                 },
-                "igenomes_ignore": {
-                    "type": "boolean",
-                    "description": "Do not load the iGenomes reference config.",
-                    "fa_icon": "fas fa-ban",
-                    "hidden": true,
-                    "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
+                "genomes_gff_dir": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Directory with genome gff files (genes)",
+                    "help_text": "Files in this directory will be concatenated into one large and used to assign counts to genes",
+                    "fa_icon": "far fa-file-code"
+                },
+                "genomes_gff_ext": {
+                    "type": "string",
+                    "default": "/*.gff.gz",
+                    "description": "File suffix for genome gff files",
+                    "help_text": "File pattern that is used to search for files (default: `\"/*.gff.gz\"`).\n\nPlease note:\n\n1. The prepended slash (`/`) is required\n2. The star (`*`) is the required wildcard for genome names\n3. The pattern must be enclosed in quotes:\n\n```bash\n--genomes_gff_dir \"genomes\" --genomes_gff_ext \"/*.gff.gz\"\n```"
                 }
-            }
+            },
+            "required": [
+                "genomes_fna_dir",
+                "genomes_gff_dir"
+            ]
         },
         "institutional_config_options": {
             "title": "Institutional config options",
@@ -287,5 +287,10 @@
         {
             "$ref": "#/definitions/generic_options"
         }
-    ]
+    ],
+    "properties": {
+        "fasta": {
+            "type": "string"
+        }
+    }
 }
