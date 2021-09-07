@@ -50,27 +50,41 @@
             "fa_icon": "fas fa-dna",
             "description": "Reference genome related files and options required for the workflow.",
             "properties": {
-                "genomes_fna_dir": {
+                "genome_fnas": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "List of genome fasta files to map to (comma separated on the command line)",
+                    "help_text": "The files will be concatenated into one large file which will be the target of mapping read files.\n\nUse this parameter or a combination of `--genome_fna_dir` and `--genome_fna_ext` (the latter has a default).",
+                    "fa_icon": "far fa-file-code"
+                },
+                "genome_fna_dir": {
                     "type": "string",
                     "format": "file-path",
                     "description": "Directory with genome fasta files (contigs)",
-                    "help_text": "Files in this directory will be concatenated into one large file which will be the target of mapping read files",
+                    "help_text": "Files in this directory will be concatenated into one large file which will be the target of mapping read files.\n\nUse this parameter (optionally with `--genome_fna_ext` to specify a different extension) or `--genome_fnas` to give a list.",
                     "fa_icon": "far fa-file-code"
                 },
-                "genomes_fna_ext": {
+                "genome_fna_ext": {
                     "type": "string",
                     "default": "/*.fna.gz",
                     "description": "File suffix for genome fasta files",
-                    "help_text": "File pattern that is used to search for files (default: `\"/*.fna.gz\"`).\n\nPlease note:\n\n1. The prepended slash (`/`) is required\n2. The star (`*`) is the required wildcard for genome names\n3. The pattern must be enclosed in quotes:\n\n```bash\n--genomes_fna_dir \"genomes\" --genomes_fna_ext \"/*.fna.gz\"\n```"
+                    "help_text": "File pattern that is used to search for files (default: `\"/*.fna.gz\"`).\n\nPlease note:\n\n1. The prepended slash (`/`) is required\n2. The star (`*`) is the required wildcard for genome names\n3. The pattern must be enclosed in quotes:\n\n```bash\n--genomes_fna_dir \"genome\" --genomes_fna_ext \"/*.fna.gz\"\n```"
                 },
-                "genomes_gff_dir": {
+                "genome_gffs": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "List of genome gff files (comma separated on the command line)",
+                    "help_text": "The files will be concatenated into one large and used to assign counts to genes.\n\nUse this parameter or a combination of `--genome_gff_dir` and `--genome_gff_ext` (the latter has a default).",
+                    "fa_icon": "far fa-file-code"
+                },
+                "genome_gff_dir": {
                     "type": "string",
                     "format": "file-path",
                     "description": "Directory with genome gff files (genes)",
-                    "help_text": "Files in this directory will be concatenated into one large and used to assign counts to genes",
+                    "help_text": "Files in this directory will be concatenated into one large and used to assign counts to genes.\n\nUse this parameter (optionally with `--genome_gff_ext` to specify a different file extension) or `--genome_gffs` to specify a list.",
                     "fa_icon": "far fa-file-code"
                 },
-                "genomes_gff_ext": {
+                "genome_gff_ext": {
                     "type": "string",
                     "default": "/*.gff.gz",
                     "description": "File suffix for genome gff files",
