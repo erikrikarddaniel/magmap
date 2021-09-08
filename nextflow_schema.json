@@ -90,11 +90,7 @@
                     "description": "File suffix for genome gff files",
                     "help_text": "File pattern that is used to search for files (default: `\"/*.gff.gz\"`).\n\nPlease note:\n\n1. The prepended slash (`/`) is required\n2. The star (`*`) is the required wildcard for genome names\n3. The pattern must be enclosed in quotes:\n\n```bash\n--genome_gff_dir \"genomes\" --genomes_gff_ext \"/*.gff.gz\"\n```"
                 }
-            },
-            "required": [
-                "genome_fna_dir",
-                "genome_gff_dir"
-            ]
+            }
         },
         "institutional_config_options": {
             "title": "Institutional config options",
