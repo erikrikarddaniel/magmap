@@ -68,7 +68,7 @@
                     "type": "string",
                     "default": "/*.fna.gz",
                     "description": "File suffix for genome fasta files",
-                    "help_text": "File pattern that is used to search for files (default: `\"/*.fna.gz\"`).\n\nPlease note:\n\n1. The prepended slash (`/`) is required\n2. The star (`*`) is the required wildcard for genome names\n3. The pattern must be enclosed in quotes:\n\n```bash\n--genomes_fna_dir \"genome\" --genomes_fna_ext \"/*.fna.gz\"\n```"
+                    "help_text": "File pattern that is used to search for files (default: `\"/*.fna.gz\"`).\n\nPlease note:\n\n1. The prepended slash (`/`) is required\n2. The star (`*`) is the required wildcard for genome names\n3. The pattern must be enclosed in quotes:\n\n```bash\n--genome_fna_dir \"genome\" --genomes_fna_ext \"/*.fna.gz\"\n```"
                 },
                 "genome_gffs": {
                     "type": "string",
@@ -88,12 +88,12 @@
                     "type": "string",
                     "default": "/*.gff.gz",
                     "description": "File suffix for genome gff files",
-                    "help_text": "File pattern that is used to search for files (default: `\"/*.gff.gz\"`).\n\nPlease note:\n\n1. The prepended slash (`/`) is required\n2. The star (`*`) is the required wildcard for genome names\n3. The pattern must be enclosed in quotes:\n\n```bash\n--genomes_gff_dir \"genomes\" --genomes_gff_ext \"/*.gff.gz\"\n```"
+                    "help_text": "File pattern that is used to search for files (default: `\"/*.gff.gz\"`).\n\nPlease note:\n\n1. The prepended slash (`/`) is required\n2. The star (`*`) is the required wildcard for genome names\n3. The pattern must be enclosed in quotes:\n\n```bash\n--genome_gff_dir \"genomes\" --genomes_gff_ext \"/*.gff.gz\"\n```"
                 }
             },
             "required": [
-                "genomes_fna_dir",
-                "genomes_gff_dir"
+                "genome_fna_dir",
+                "genome_gff_dir"
             ]
         },
         "institutional_config_options": {
