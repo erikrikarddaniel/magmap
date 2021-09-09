@@ -3,6 +3,9 @@
     "homePage": "https://github.com/nf-core/magmap",
     "repos": {
         "nf-core/modules": {
+            "bbmap/index": {
+                "git_sha": "0f59b07945001b0238653500c606a5b1edfc3592"
+            },
             "fastqc": {
                 "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
             },
