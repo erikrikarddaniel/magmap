@@ -10,3 +10,4 @@ testing*
 *.Rproj
 .Rproj.user
 testdata
+.screenrc

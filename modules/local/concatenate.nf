@@ -28,7 +28,7 @@ process CONCATENATE {
     path "file.gz", emit: file
 
     script:
-    cpus = task.cpus/2
+    cpus = Math.floor(task.cpus/2).toInteger()
     
     """
     for f in $files; do unpigz -c -p $cpus \$f; done | pigz -c -p $cpus > file.gz

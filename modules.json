@@ -4,7 +4,7 @@
     "repos": {
         "nf-core/modules": {
             "bbmap/index": {
-                "git_sha": "0f59b07945001b0238653500c606a5b1edfc3592"
+                "git_sha": "3a8bfc1d332c62404b29a82bfcea41805a89bea9"
             },
             "fastqc": {
                 "git_sha": "e937c7950af70930d1f34bb961403d9d2aa81c7d"
