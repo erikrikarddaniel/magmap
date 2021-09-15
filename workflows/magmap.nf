@@ -81,14 +81,16 @@ include { CREATE_BBMAP_INDEX } from '../subworkflows/local/create_bbmap_index' a
 ========================================================================================
 */
 
-def multiqc_options   = modules['multiqc']
-multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
+def multiqc_options       = modules['multiqc']
+multiqc_options.args     += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
+bbmap_align_options       = [ args: Utils.joinModuleArgs(["trimreaddescriptions=t"]) ]
 
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC  } from '../modules/nf-core/modules/fastqc/main'  addParams( options: modules['fastqc'] )
-include { MULTIQC } from '../modules/nf-core/modules/multiqc/main' addParams( options: multiqc_options   )
+include { FASTQC      } from '../modules/nf-core/modules/fastqc/main'               addParams( options: modules['fastqc'] )
+include { MULTIQC     } from '../modules/nf-core/modules/multiqc/main'              addParams( options: multiqc_options   )
+include { BBMAP_ALIGN } from '../modules/erikrikarddaniel/modules/bbmap/align/main' addParams( options: bbmap_align_options )
 
 /*
 ========================================================================================
@@ -122,6 +124,11 @@ workflow MAGMAP {
     // SUBWORKFLOW: Concatenate the genome fasta files and create a BBMap index
     //
     CREATE_BBMAP_INDEX ( ch_genome_fnas )
+
+    //
+    // MODULE: Run BBMap
+    //
+    BBMAP_ALIGN ( INPUT_CHECK.out.reads, CREATE_BBMAP_INDEX.out.index )
 
     //
     // MODULE: Pipeline reporting

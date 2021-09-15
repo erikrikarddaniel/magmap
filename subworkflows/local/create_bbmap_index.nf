@@ -5,9 +5,9 @@ workflow CREATE_BBMAP_INDEX {
     take: ch_genome_fnas
 
     main:
-        CONCATENATE(ch_genome_fnas.collect()) //.file.map { ch_genomes }
+        CONCATENATE(ch_genome_fnas.collect()) 
         BBMAP_INDEX(CONCATENATE.out.file)
 
     emit: 
-    BBMAP_INDEX.out.index
+    index = BBMAP_INDEX.out.index
 }
