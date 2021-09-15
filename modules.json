@@ -2,6 +2,11 @@
     "name": "nf-core/magmap",
     "homePage": "https://github.com/nf-core/magmap",
     "repos": {
+        "erikrikarddaniel/modules": {
+            "bbmap/align": {
+                "git_sha": "1a9dd61c1a75ee65d73e50f7f1d665db5c3660cf"
+            }
+        },
         "nf-core/modules": {
             "bbmap/index": {
                 "git_sha": "3a8bfc1d332c62404b29a82bfcea41805a89bea9"
