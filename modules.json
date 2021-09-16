@@ -4,7 +4,7 @@
     "repos": {
         "erikrikarddaniel/modules": {
             "bbmap/align": {
-                "git_sha": "11c2589fe461e565b682ac547c966dd686c36015"
+                "git_sha": "7d9e55c215509a13aaaa685ba3cfd06dd8b5ea70"
             }
         },
         "nf-core/modules": {
