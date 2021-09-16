@@ -31,6 +31,6 @@ process CONCATENATE {
     cpus = Math.floor(task.cpus/2).toInteger()
     
     """
-    for f in $files; do unpigz -c -p $cpus \$f; done | pigz -c -p $cpus > file.gz
+    for f in $files; do unpigz -c -p $cpus \$f; done ${options.args} | pigz -c -p $cpus > file.gz
     """
 }
