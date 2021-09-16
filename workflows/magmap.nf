@@ -84,6 +84,7 @@ include { CREATE_BBMAP_INDEX } from '../subworkflows/local/create_bbmap_index' a
 def multiqc_options       = modules['multiqc']
 multiqc_options.args     += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
 bbmap_align_options       = [ args: Utils.joinModuleArgs(["trimreaddescriptions=t"]) ]
+concatenate_gff_options   = [ args: Utils.joinModuleArgs(["| grep -E '\\t'"]) ]
 
 //
 // MODULE: Installed directly from nf-core/modules
@@ -92,6 +93,7 @@ include { FASTQC        } from '../modules/nf-core/modules/fastqc/main'         
 include { MULTIQC       } from '../modules/nf-core/modules/multiqc/main'              addParams( options: multiqc_options   )
 include { BBMAP_ALIGN   } from '../modules/erikrikarddaniel/modules/bbmap/align/main' addParams( options: bbmap_align_options )
 include { SAMTOOLS_SORT } from '../modules/nf-core/modules/samtools/sort/main'        addParams( options: [ : ] )
+include { CONCATENATE as CONCATENATE_GFF } from '../modules/local/concatenate'        addParams( options: concatenate_gff_options )
 
 /*
 ========================================================================================
@@ -135,6 +137,11 @@ workflow MAGMAP {
     // MODULE: Sort BBMap output
     //
     SAMTOOLS_SORT ( BBMAP_ALIGN.out.bam )
+
+    //
+    // MODULE: Concatenate gff files
+    //
+    CONCATENATE_GFF ( ch_genome_gffs.collect() )
 
     //
     // MODULE: Pipeline reporting
