@@ -88,9 +88,10 @@ bbmap_align_options       = [ args: Utils.joinModuleArgs(["trimreaddescriptions=
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC      } from '../modules/nf-core/modules/fastqc/main'               addParams( options: modules['fastqc'] )
-include { MULTIQC     } from '../modules/nf-core/modules/multiqc/main'              addParams( options: multiqc_options   )
-include { BBMAP_ALIGN } from '../modules/erikrikarddaniel/modules/bbmap/align/main' addParams( options: bbmap_align_options )
+include { FASTQC        } from '../modules/nf-core/modules/fastqc/main'               addParams( options: modules['fastqc'] )
+include { MULTIQC       } from '../modules/nf-core/modules/multiqc/main'              addParams( options: multiqc_options   )
+include { BBMAP_ALIGN   } from '../modules/erikrikarddaniel/modules/bbmap/align/main' addParams( options: bbmap_align_options )
+include { SAMTOOLS_SORT } from '../modules/nf-core/modules/samtools/sort/main'        addParams( options: [ : ] )
 
 /*
 ========================================================================================
@@ -129,6 +130,11 @@ workflow MAGMAP {
     // MODULE: Run BBMap
     //
     BBMAP_ALIGN ( INPUT_CHECK.out.reads, CREATE_BBMAP_INDEX.out.index )
+
+    //
+    // MODULE: Sort BBMap output
+    //
+    SAMTOOLS_SORT ( BBMAP_ALIGN.out.bam )
 
     //
     // MODULE: Pipeline reporting
