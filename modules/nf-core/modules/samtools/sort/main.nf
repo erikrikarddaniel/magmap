@@ -22,7 +22,7 @@ process SAMTOOLS_SORT {
     tuple val(meta), path(bam)
 
     output:
-    tuple val(meta), path("*.bam", includeInputs: true), emit: bam
+    tuple val(meta), path("*.bam"), emit: bam
     path  "*.version.txt"         , emit: version
 
     script:
