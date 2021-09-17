@@ -1,10 +1,6 @@
 // Import generic module functions
 include { initOptions; saveFiles; getSoftwareName } from './functions'
 
-// TODO nf-core: A module file SHOULD only define input and output files as command-line parameters.
-//               All other parameters MUST be provided as a string i.e. "options.args"
-//               where "params.options" is a Groovy Map that MUST be provided via the addParams section of the including workflow.
-
 params.options = [:]
 options        = initOptions(params.options)
 
@@ -30,6 +26,7 @@ process CONCATENATE {
     script:
     cpus = Math.floor(task.cpus/2).toInteger()
     
+    // Should the use of options.args for filtering be made explicit by calling it options.filter?
     """
     for f in $files; do unpigz -c -p $cpus \$f; done ${options.args} | pigz -c -p $cpus > file.gz
     """
