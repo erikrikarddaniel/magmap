@@ -23,7 +23,6 @@ if ( params.genome_fna_dir && params.genome_fna_ext ) {
         .ifEmpty { exit 1, "Cannot find any files matching \"${params.genome_fna_dir}${params.genome_fna_ext}\"\nPlease revise the genome directory (\"--genome_fna_dir\") and extension (\"--genome_fna_ext\")." }
         .set { ch_genome_fnas }
 } else if ( params.genome_fnas ) {
-    println("\t- params.genome_fnas.split(): ${params.genome_fnas.split(',')}")
     Channel
         .fromPath(Arrays.asList(params.genome_fnas.split(',')))
         .set { ch_genome_fnas }
@@ -38,7 +37,6 @@ if ( params.genome_gff_dir && params.genome_gff_ext ) {
         .ifEmpty { exit 1, "Cannot find any files matching \"${params.genome_gff_dir}${params.genome_gff_ext}\"\nPlease revise the genome directory (\"--genome_gff_dir\") and extension (\"--genome_gff_ext\")." }
         .set { ch_genome_gffs }
 } else if ( params.genome_gffs ) {
-    println("\t- params.genome_gffs.split(): ${params.genome_gffs.split(',')}")
     Channel
         .fromPath(Arrays.asList(params.genome_gffs.split(',')))
         .set { ch_genome_gffs }
@@ -86,6 +84,7 @@ multiqc_options.args     += params.multiqc_title ? Utils.joinModuleArgs(["--titl
 bbmap_align_options       = modules['bbmap_align']
 samtools_sort_options     = modules['samtools_sort']
 concatenate_gff_options   = modules['concatenate_gff']
+subread_featurecounts_options = modules['subread_featurecounts_cds']
 
 //
 // MODULE: Installed directly from nf-core/modules
@@ -95,6 +94,8 @@ include { MULTIQC       } from '../modules/nf-core/modules/multiqc/main'        
 include { BBMAP_ALIGN   } from '../modules/erikrikarddaniel/modules/bbmap/align/main' addParams( options: bbmap_align_options )
 include { SAMTOOLS_SORT } from '../modules/nf-core/modules/samtools/sort/main'        addParams( options: samtools_sort_options )
 include { CONCATENATE as CONCATENATE_GFF } from '../modules/local/concatenate'        addParams( options: concatenate_gff_options )
+include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_CDS } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options )
+include { TESTMOD } from '../modules/local/testmod.nf' addParams()
 
 /*
 ========================================================================================
@@ -143,6 +144,17 @@ workflow MAGMAP {
     // MODULE: Concatenate gff files
     //
     CONCATENATE_GFF ( ch_genome_gffs.collect() )
+
+    //ch_featurecounts = SAMTOOLS_SORT.out.bam
+    SAMTOOLS_SORT.out.bam
+        .collect()
+        .combine(CONCATENATE_GFF.out.file)
+        .set { ch_featurecounts }
+
+    //
+    // MODULE: Run featureCounts
+    //
+    FEATURECOUNTS_CDS ( ch_featurecounts )
 
     //
     // MODULE: Pipeline reporting
