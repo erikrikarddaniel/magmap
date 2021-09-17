@@ -147,7 +147,6 @@ workflow MAGMAP {
 
     //ch_featurecounts = SAMTOOLS_SORT.out.bam
     SAMTOOLS_SORT.out.bam
-        .collect()
         .combine(CONCATENATE_GFF.out.file)
         .set { ch_featurecounts }
 
