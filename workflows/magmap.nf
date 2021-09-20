@@ -126,14 +126,6 @@ workflow MAGMAP {
         ch_input
     )
 
-//    //
-//    // MODULE: Run FastQC
-//    //
-//    FASTQC (
-//        INPUT_CHECK.out.reads
-//    )
-//    ch_software_versions = ch_software_versions.mix(FASTQC.out.version.first().ifEmpty(null))
-
     //
     // SUBWORKFLOW: Read QC and trim adapters
     //
