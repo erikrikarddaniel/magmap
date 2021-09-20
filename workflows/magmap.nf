@@ -91,7 +91,7 @@ subread_featurecounts_options = modules['subread_featurecounts_cds']
 //
 include { FASTQC        } from '../modules/nf-core/modules/fastqc/main'               addParams( options: modules['fastqc'] )
 include { MULTIQC       } from '../modules/nf-core/modules/multiqc/main'              addParams( options: multiqc_options   )
-include { BBMAP_ALIGN   } from '../modules/erikrikarddaniel/modules/bbmap/align/main' addParams( options: bbmap_align_options )
+include { BBMAP_ALIGN   } from '../modules/nf-core/modules/bbmap/align/main' addParams( options: bbmap_align_options )
 include { SAMTOOLS_SORT } from '../modules/nf-core/modules/samtools/sort/main'        addParams( options: samtools_sort_options )
 include { CONCATENATE as CONCATENATE_GFF } from '../modules/local/concatenate'        addParams( options: concatenate_gff_options )
 include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_CDS } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options )
