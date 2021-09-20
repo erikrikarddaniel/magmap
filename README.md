@@ -16,8 +16,7 @@
 
 ## Introduction
 
-<!-- TODO nf-core: Write a 1-2 sentence summary of what data the pipeline is for and what it does -->
-**nf-core/magmap** is a bioinformatics best-practice analysis pipeline for A pipeline that maps reads to a collections of genomes..
+**nf-core/magmap** is a bioinformatics best-practice analysis pipeline for mapping reads to a (large) collections of genomes.
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It uses Docker/Singularity containers making installation trivial and results highly reproducible. The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementation of this pipeline uses one container per process which makes it much easier to maintain and update software dependencies. Where possible, these processes have been submitted to and installed from [nf-core/modules](https://github.com/nf-core/modules) in order to make them available to all nf-core pipelines, and to everyone within the Nextflow community!
 
@@ -26,10 +25,12 @@ On release, automated continuous integration tests run the pipeline on a full-si
 
 ## Pipeline summary
 
-<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->
-
 1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
 2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+3. Trim reads ([`Trimmomatic`](https://github.com/usadellab/Trimmomatic))
+3. Create a [`BBMap`](https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide/bbmap-guide/) index for all reference genomes concatenated into one file
+4. Map all reads to the index with BBMap
+5. Quantify genes ([`featureCounts` from `Subread`](http://subread.sourceforge.net/))
 
 ## Quick Start
 
