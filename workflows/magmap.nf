@@ -176,6 +176,8 @@ workflow MAGMAP {
     // MODULE: Run collectdata
     //
     COLLECTDATA ( FEATURECOUNTS_CDS.out.counts.collect { it[1] } )
+    ch_software_versions = ch_software_versions.mix(COLLECTDATA.out.r_version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(COLLECTDATA.out.dplyr_version.ifEmpty(null))
 
     //
     // MODULE: Pipeline reporting

@@ -22,13 +22,12 @@ process COLLECTDATA {
     path('*.featureCounts.txt')
 
     output:
-    path "counts.tsv.gz", emit: counts
-    //path "*.version.txt"          , emit: version
+    path "counts.tsv.gz",     emit: counts
+    path "R.version.txt",     emit: r_version
+    path "dplyr.version.txt", emit: dplyr_version
 
     script:
     def software = getSoftwareName(task.process)
-
-    //println "DEBUG: fc_tables: ${fc_tables}"
     
     """
     #!/usr/bin/env Rscript
@@ -58,5 +57,8 @@ process COLLECTDATA {
         group_by(sample) %>% mutate(tpm = r/sum(r) * 1e6) %>% ungroup() %>%
         select(-f, -r) %>%
         write_tsv("counts.tsv.gz")
+
+    write(sprintf("%s.%s", R.Version()\$major, R.Version()\$minor), 'R.version.txt')
+    write(sprintf("%s", packageVersion('dplyr')), 'dplyr.version.txt')
     """
 }
