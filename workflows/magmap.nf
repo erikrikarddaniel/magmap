@@ -142,16 +142,19 @@ workflow MAGMAP {
     // SUBWORKFLOW: Concatenate the genome fasta files and create a BBMap index
     //
     CREATE_BBMAP_INDEX ( ch_genome_fnas )
+    ch_software_versions = ch_software_versions.mix(CREATE_BBMAP_INDEX.out.bbmap_version.ifEmpty(null))
 
     //
     // MODULE: Run BBMap
     //
     BBMAP_ALIGN ( FASTQC_TRIMGALORE.out.reads, CREATE_BBMAP_INDEX.out.index )
+    ch_software_versions = ch_software_versions.mix(BBMAP_ALIGN.out.version.ifEmpty(null))
 
     //
     // MODULE: Sort BBMap output
     //
     SAMTOOLS_SORT ( BBMAP_ALIGN.out.bam )
+    ch_software_versions = ch_software_versions.mix(SAMTOOLS_SORT.out.version.ifEmpty(null))
 
     //
     // MODULE: Concatenate gff files
@@ -167,6 +170,7 @@ workflow MAGMAP {
     // MODULE: Run featureCounts
     //
     FEATURECOUNTS_CDS ( ch_featurecounts )
+    ch_software_versions = ch_software_versions.mix(FEATURECOUNTS_CDS.out.version.ifEmpty(null))
 
     //
     // MODULE: Run collectdata

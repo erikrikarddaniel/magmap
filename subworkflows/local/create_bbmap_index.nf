@@ -9,5 +9,6 @@ workflow CREATE_BBMAP_INDEX {
         BBMAP_INDEX(CONCATENATE.out.file)
 
     emit: 
-    index = BBMAP_INDEX.out.index
+    index         = BBMAP_INDEX.out.index
+    bbmap_version = BBMAP_INDEX.out.version
 }
