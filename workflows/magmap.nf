@@ -66,6 +66,7 @@ def modules = params.modules.clone()
 // MODULE: Local to the pipeline
 //
 include { GET_SOFTWARE_VERSIONS } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['tsv':'']] )
+include { COLLECTDATA } from '../modules/local/collectdata' addParams( options: [:] )
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -166,6 +167,11 @@ workflow MAGMAP {
     // MODULE: Run featureCounts
     //
     FEATURECOUNTS_CDS ( ch_featurecounts )
+
+    //
+    // MODULE: Run collectdata
+    //
+    COLLECTDATA ( FEATURECOUNTS_CDS.out.counts.collect { it[1] } )
 
     //
     // MODULE: Pipeline reporting
