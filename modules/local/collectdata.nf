@@ -21,9 +21,11 @@ process COLLECTDATA {
     path('*.featureCounts.txt')
 
     output:
-    path "counts.tsv.gz",     emit: counts
-    path "R.version.txt",     emit: r_version
-    path "dplyr.version.txt", emit: dplyr_version
+    path "counts.tsv.gz"         , emit: counts
+    path "R.version.txt"         , emit: r_version
+    path "dplyr.version.txt"     , emit: dplyr_version
+    path "dtplyr.version.txt"    , emit: dtplyr_version
+    path "data.table.version.txt", emit: datatable_version
 
     script:
     def software = getSoftwareName(task.process)
@@ -31,8 +33,8 @@ process COLLECTDATA {
     """
     #!/usr/bin/env Rscript
 
-    #library(data.table)
-    #library(dtplyr)
+    library(data.table)
+    library(dtplyr)
     library(readr)
     library(dplyr)
     library(stringr)
@@ -43,21 +45,27 @@ process COLLECTDATA {
             d = purrr::map(
                 f, 
                 function(file) {
-                    #read_tsv(file, col_types = 'cciicii', skip = 1) %>%
-                    read.delim(file, skip = 1, sep = '\t') %>%
-                        tidyr::pivot_longer(ncol(.), names_to = 'sample', values_to = 'count') %>%
+                    fread(file, sep = '\t', skip = 1) %>%
+                        melt(measure.vars = c(ncol(.)), variable.name = 'sample', value.name = 'count') %>%
+                        lazy_dt() %>%
                         filter(count > 0) %>%
-                        mutate(sample = str_remove(sample, '.sorted.bam'))
+                        mutate(
+                            sample = str_remove(sample, '.sorted.bam'),
+                            r = count/Length
+                        ) %>%
+                        group_by(sample) %>% mutate(tpm = r/sum(r) * 1e6) %>% ungroup() %>%
+                        select(-r) %>%
+                        as_tibble()
                 }
             )
         ) %>%
         tidyr::unnest(d) %>%
-        mutate(r = count/Length) %>%
-        group_by(sample) %>% mutate(tpm = r/sum(r) * 1e6) %>% ungroup() %>%
-        select(-f, -r) %>%
+        select(-f) %>%
         write_tsv("counts.tsv.gz")
 
     write(sprintf("%s.%s", R.Version()\$major, R.Version()\$minor), 'R.version.txt')
-    write(sprintf("%s", packageVersion('dplyr')), 'dplyr.version.txt')
+    write(sprintf("%s", packageVersion('dplyr'))                  , 'dplyr.version.txt')
+    write(sprintf("%s", packageVersion('dtplyr'))                 , 'dtplyr.version.txt')
+    write(sprintf("%s", packageVersion('data.table'))             , 'data.table.version.txt')
     """
 }
