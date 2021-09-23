@@ -69,6 +69,7 @@ collect_featurecounts_options       = modules['collect_featurecounts']
 //
 include { GET_SOFTWARE_VERSIONS } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['tsv':'']] )
 include { COLLECT_FEATURECOUNTS } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options )
+include { COLLECT_GENE_INFO     } from '../modules/local/collect_gene_info' addParams( options: collect_featurecounts_options )
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -182,6 +183,16 @@ workflow MAGMAP {
     ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS.out.dplyr_version.ifEmpty(null))
     ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS.out.dtplyr_version.ifEmpty(null))
     ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS.out.datatable_version.ifEmpty(null))
+
+    //
+    // MODULE: Run collect_gene_info
+    //
+    COLLECT_GENE_INFO ( ch_genome_gffs.collect() )
+    ch_software_versions = ch_software_versions.mix(COLLECT_GENE_INFO.out.r_version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(COLLECT_GENE_INFO.out.dplyr_version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(COLLECT_GENE_INFO.out.tidyr_version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(COLLECT_GENE_INFO.out.dtplyr_version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(COLLECT_GENE_INFO.out.datatable_version.ifEmpty(null))
 
     //
     // MODULE: Pipeline reporting
