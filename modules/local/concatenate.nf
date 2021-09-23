@@ -18,16 +18,16 @@ process CONCATENATE {
     }
 
     input:
+    val  outfilename
     path files
 
     output:
-    path "file.gz", emit: file
+    path "${outfilename}", emit: file
 
     script:
     cpus = Math.floor(task.cpus/2).toInteger()
     
-    // Should the use of options.args for filtering be made explicit by calling it options.filter?
     """
-    for f in $files; do unpigz -c -p $cpus \$f; done ${options.args} | pigz -c -p $cpus > file.gz
+    unpigz -c -p $cpus $files ${options.args} | pigz -c -p $cpus > $outfilename
     """
 }

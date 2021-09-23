@@ -161,7 +161,7 @@ workflow MAGMAP {
     //
     // MODULE: Concatenate gff files
     //
-    CONCATENATE_GFF ( ch_genome_gffs.collect() )
+    CONCATENATE_GFF ( 'genomes.gff.gz', ch_genome_gffs.collect() )
 
     //ch_featurecounts = SAMTOOLS_SORT.out.bam
     SAMTOOLS_SORT.out.bam
