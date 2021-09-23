@@ -1,5 +1,5 @@
-include { CONCATENATE } from '../../modules/local/concatenate' addParams( )
-include { BBMAP_INDEX } from '../../modules/nf-core/modules/bbmap/index/main' addParams( )
+include { CONCATENATE } from '../../modules/local/concatenate' addParams( [ options: [ publish_files: false ] ] )
+include { BBMAP_INDEX } from '../../modules/nf-core/modules/bbmap/index/main' addParams( [:] )
 
 workflow CREATE_BBMAP_INDEX {
     take: ch_genome_fnas
