@@ -22,7 +22,7 @@ process COLLECT_GENE_INFO {
     path files
 
     output:
-    path "genes.tsv.gz" , emit: genefile
+    path "genes.tsv.gz"          , emit: genefile
     path "R.version.txt"         , emit: r_version
     path "dplyr.version.txt"     , emit: dplyr_version
     path "tidyr.version.txt"     , emit: tidyr_version
@@ -35,8 +35,6 @@ process COLLECT_GENE_INFO {
     """
     #!/usr/bin/env Rscript
 
-    ## gunzip -c *.gff.gz | sed 's/:/\t/' | gzip -c > genes.tsv.gz
-    ## echo "0.1" > whatever.version.txt
     library(data.table)
     library(dtplyr)
     library(readr)

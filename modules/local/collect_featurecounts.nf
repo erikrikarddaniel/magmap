@@ -5,6 +5,7 @@ params.options = [:]
 options        = initOptions(params.options)
 
 process COLLECT_FEATURECOUNTS {
+    tag "counts${options.suffix}.tsv.gz"
     label 'process_high'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
@@ -18,10 +19,10 @@ process COLLECT_FEATURECOUNTS {
     }
 
     input:
-    path('*.featureCounts.txt')
+    path inputfiles
 
     output:
-    path "counts.tsv.gz"         , emit: counts
+    path "*.tsv.gz"              , emit: counts
     path "R.version.txt"         , emit: r_version
     path "dplyr.version.txt"     , emit: dplyr_version
     path "dtplyr.version.txt"    , emit: dtplyr_version
@@ -63,7 +64,7 @@ process COLLECT_FEATURECOUNTS {
         ) %>%
         tidyr::unnest(d) %>%
         select(-f) %>%
-        write_tsv("counts.tsv.gz")
+        write_tsv("counts${options.suffix}.tsv.gz")
 
     write(sprintf("%s.%s", R.Version()\$major, R.Version()\$minor), 'R.version.txt')
     write(sprintf("%s", packageVersion('dplyr'))                  , 'dplyr.version.txt')

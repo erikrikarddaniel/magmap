@@ -62,14 +62,24 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 
-collect_featurecounts_options       = modules['collect_featurecounts']
+collect_featurecounts_options_cds   = modules['collect_featurecounts_cds']
+collect_featurecounts_options_rrna  = modules['collect_featurecounts_rrna']
+collect_featurecounts_options_trna  = modules['collect_featurecounts_trna']
+collect_featurecounts_options_tmrna = modules['collect_featurecounts_tmrna']
+
+collect_gene_info_options           = modules['collect_gene_info']
 
 //
 // MODULE: Local to the pipeline
 //
 include { GET_SOFTWARE_VERSIONS } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['tsv':'']] )
-include { COLLECT_FEATURECOUNTS } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options )
-include { COLLECT_GENE_INFO     } from '../modules/local/collect_gene_info' addParams( options: collect_featurecounts_options )
+
+include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_CDS   } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_cds )
+include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_RRNA  } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_rrna )
+include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_TRNA  } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_trna )
+include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_TMRNA } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_tmrna )
+
+include { COLLECT_GENE_INFO     } from '../modules/local/collect_gene_info' addParams( options: collect_gene_info_options )
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -90,10 +100,13 @@ def trimgalore_options    = modules['trimgalore']
 trimgalore_options.args  += params.trim_nextseq > 0 ? Utils.joinModuleArgs(["--nextseq ${params.trim_nextseq}"]) : ''
 if (params.save_trimmed)  { trimgalore_options.publish_files.put('fq.gz','') }
 
-bbmap_align_options       = modules['bbmap_align']
-samtools_sort_options     = modules['samtools_sort']
-concatenate_gff_options   = modules['concatenate_gff']
-subread_featurecounts_options = modules['subread_featurecounts_cds']
+bbmap_align_options                      = modules['bbmap_align']
+samtools_sort_options                    = modules['samtools_sort']
+concatenate_gff_options                  = modules['concatenate_gff']
+subread_featurecounts_options_cds        = modules['subread_featurecounts_cds']
+subread_featurecounts_options_rrna       = modules['subread_featurecounts_rrna']
+subread_featurecounts_options_trna       = modules['subread_featurecounts_trna']
+subread_featurecounts_options_tmrna      = modules['subread_featurecounts_tmrna']
 
 //
 // MODULE: Installed directly from nf-core/modules
@@ -103,7 +116,10 @@ include { MULTIQC       } from '../modules/nf-core/modules/multiqc/main'        
 include { BBMAP_ALIGN   } from '../modules/nf-core/modules/bbmap/align/main'          addParams( options: bbmap_align_options )
 include { SAMTOOLS_SORT } from '../modules/nf-core/modules/samtools/sort/main'        addParams( options: samtools_sort_options )
 include { CONCATENATE as CONCATENATE_GFF } from '../modules/local/concatenate'        addParams( options: concatenate_gff_options )
-include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_CDS } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options )
+include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_CDS   } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_cds )
+include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_RRNA  } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_rrna )
+include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_TRNA  } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_trna )
+include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_TMRNA } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_tmrna )
 
 //
 // SUBWORKFLOW: Adapted from rnaseq!
@@ -175,14 +191,27 @@ workflow MAGMAP {
     FEATURECOUNTS_CDS ( ch_featurecounts )
     ch_software_versions = ch_software_versions.mix(FEATURECOUNTS_CDS.out.version.ifEmpty(null))
 
+    FEATURECOUNTS_RRNA ( ch_featurecounts )
+    ch_software_versions = ch_software_versions.mix(FEATURECOUNTS_RRNA.out.version.ifEmpty(null))
+
+    FEATURECOUNTS_TRNA ( ch_featurecounts )
+    ch_software_versions = ch_software_versions.mix(FEATURECOUNTS_TRNA.out.version.ifEmpty(null))
+
+    FEATURECOUNTS_TMRNA ( ch_featurecounts )
+    ch_software_versions = ch_software_versions.mix(FEATURECOUNTS_TMRNA.out.version.ifEmpty(null))
+
     //
     // MODULE: Run collect_featurecounts
     //
-    COLLECT_FEATURECOUNTS ( FEATURECOUNTS_CDS.out.counts.collect { it[1] } )
-    ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS.out.r_version.ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS.out.dplyr_version.ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS.out.dtplyr_version.ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS.out.datatable_version.ifEmpty(null))
+    COLLECT_FEATURECOUNTS_CDS   ( FEATURECOUNTS_CDS.out.counts.collect   { it[1] } )
+    ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS_CDS.out.r_version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS_CDS.out.dplyr_version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS_CDS.out.dtplyr_version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS_CDS.out.datatable_version.ifEmpty(null))
+
+    COLLECT_FEATURECOUNTS_RRNA  ( FEATURECOUNTS_RRNA.out.counts.collect  { it[1] } )
+    COLLECT_FEATURECOUNTS_TRNA  ( FEATURECOUNTS_TRNA.out.counts.collect  { it[1] } )
+    COLLECT_FEATURECOUNTS_TMRNA ( FEATURECOUNTS_TMRNA.out.counts.collect { it[1] } )
 
     //
     // MODULE: Run collect_gene_info
