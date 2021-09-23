@@ -19,7 +19,7 @@ process COLLECT_GENE_INFO {
     }
 
     input:
-    path "*.gff.gz"
+    path files
 
     output:
     path "genes.tsv.gz" , emit: genefile
