@@ -62,11 +62,13 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 
+collect_featurecounts_options       = modules['collect_featurecounts']
+
 //
 // MODULE: Local to the pipeline
 //
 include { GET_SOFTWARE_VERSIONS } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['tsv':'']] )
-include { COLLECTDATA } from '../modules/local/collectdata' addParams( options: [:] )
+include { COLLECT_FEATURECOUNTS } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options )
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -97,7 +99,7 @@ subread_featurecounts_options = modules['subread_featurecounts_cds']
 //
 include { FASTQC        } from '../modules/nf-core/modules/fastqc/main'               addParams( options: modules['fastqc'] )
 include { MULTIQC       } from '../modules/nf-core/modules/multiqc/main'              addParams( options: multiqc_options   )
-include { BBMAP_ALIGN   } from '../modules/nf-core/modules/bbmap/align/main' addParams( options: bbmap_align_options )
+include { BBMAP_ALIGN   } from '../modules/nf-core/modules/bbmap/align/main'          addParams( options: bbmap_align_options )
 include { SAMTOOLS_SORT } from '../modules/nf-core/modules/samtools/sort/main'        addParams( options: samtools_sort_options )
 include { CONCATENATE as CONCATENATE_GFF } from '../modules/local/concatenate'        addParams( options: concatenate_gff_options )
 include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_CDS } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options )
@@ -173,11 +175,13 @@ workflow MAGMAP {
     ch_software_versions = ch_software_versions.mix(FEATURECOUNTS_CDS.out.version.ifEmpty(null))
 
     //
-    // MODULE: Run collectdata
+    // MODULE: Run collect_featurecounts
     //
-    COLLECTDATA ( FEATURECOUNTS_CDS.out.counts.collect { it[1] } )
-    ch_software_versions = ch_software_versions.mix(COLLECTDATA.out.r_version.ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(COLLECTDATA.out.dplyr_version.ifEmpty(null))
+    COLLECT_FEATURECOUNTS ( FEATURECOUNTS_CDS.out.counts.collect { it[1] } )
+    ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS.out.r_version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS.out.dplyr_version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS.out.dtplyr_version.ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS.out.datatable_version.ifEmpty(null))
 
     //
     // MODULE: Pipeline reporting

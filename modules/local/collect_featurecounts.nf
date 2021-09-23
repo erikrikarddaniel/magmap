@@ -4,7 +4,7 @@ include { initOptions; saveFiles; getSoftwareName } from './functions'
 params.options = [:]
 options        = initOptions(params.options)
 
-process COLLECTDATA {
+process COLLECT_FEATURECOUNTS {
     label 'process_high'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
