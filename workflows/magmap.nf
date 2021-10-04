@@ -62,6 +62,7 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 
+bbmap_index_options                 = modules['bbmap_index']
 collect_featurecounts_options_cds   = modules['collect_featurecounts_cds']
 collect_featurecounts_options_rrna  = modules['collect_featurecounts_rrna']
 collect_featurecounts_options_trna  = modules['collect_featurecounts_trna']
@@ -85,7 +86,7 @@ include { COLLECT_GENE_INFO     } from '../modules/local/collect_gene_info' addP
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
 include { INPUT_CHECK } from '../subworkflows/local/input_check' addParams( options: [:] )
-include { CREATE_BBMAP_INDEX } from '../subworkflows/local/create_bbmap_index' addParams( options: [:] )
+include { CREATE_BBMAP_INDEX } from '../subworkflows/local/create_bbmap_index' addParams( bbmap_index_options: bbmap_index_options )
 
 /*
 ========================================================================================
