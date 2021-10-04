@@ -62,7 +62,6 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 
-bbmap_index_options                 = modules['bbmap_index']
 collect_featurecounts_options_cds   = modules['collect_featurecounts_cds']
 collect_featurecounts_options_rrna  = modules['collect_featurecounts_rrna']
 collect_featurecounts_options_trna  = modules['collect_featurecounts_trna']
@@ -85,6 +84,8 @@ include { COLLECT_GENE_INFO     } from '../modules/local/collect_gene_info' addP
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
+bbmap_index_options                 = modules['bbmap_index']
+
 include { INPUT_CHECK } from '../subworkflows/local/input_check' addParams( options: [:] )
 include { CREATE_BBMAP_INDEX } from '../subworkflows/local/create_bbmap_index' addParams( bbmap_index_options: bbmap_index_options )
 
@@ -97,8 +98,6 @@ include { CREATE_BBMAP_INDEX } from '../subworkflows/local/create_bbmap_index' a
 def multiqc_options       = modules['multiqc']
 multiqc_options.args     += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
 
-def trimgalore_options    = modules['trimgalore']
-trimgalore_options.args  += params.trim_nextseq > 0 ? Utils.joinModuleArgs(["--nextseq ${params.trim_nextseq}"]) : ''
 if (params.save_trimmed)  { trimgalore_options.publish_files.put('fq.gz','') }
 
 bbmap_align_options                      = modules['bbmap_align']
@@ -125,6 +124,9 @@ include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_TMRNA } from '../modules/nf-cor
 //
 // SUBWORKFLOW: Adapted from rnaseq!
 //
+def trimgalore_options    = modules['trimgalore']
+trimgalore_options.args  += params.trim_nextseq > 0 ? Utils.joinModuleArgs(["--nextseq ${params.trim_nextseq}"]) : ''
+
 include { FASTQC_TRIMGALORE } from '../subworkflows/local/fastqc_trimgalore' addParams( fastqc_options: modules['fastqc'], trimgalore_options: trimgalore_options )
 
 /*

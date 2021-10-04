@@ -1,3 +1,7 @@
+//
+// Create a BBMap index out of a set of fasta nucleotide files.
+//
+
 params.bbmap_index_options = [:]
 
 include { CONCATENATE } from '../../modules/local/concatenate' addParams( [ options: [ publish_files: false ] ] )
