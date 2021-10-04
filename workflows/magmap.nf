@@ -99,6 +99,7 @@ multiqc_options.args     += params.multiqc_title ? Utils.joinModuleArgs(["--titl
 
 if (params.save_trimmed)  { trimgalore_options.publish_files.put('fq.gz','') }
 
+bbduk_options                            = modules['bbduk']
 bbmap_align_options                      = modules['bbmap_align']
 bbmap_align_options.args                += params.usemodulo ? Utils.joinModuleArgs(["usemodulo"]) : ''
 samtools_sort_options                    = modules['samtools_sort']
@@ -113,6 +114,7 @@ subread_featurecounts_options_tmrna      = modules['subread_featurecounts_tmrna'
 //
 include { FASTQC        } from '../modules/nf-core/modules/fastqc/main'               addParams( options: modules['fastqc'] )
 include { MULTIQC       } from '../modules/nf-core/modules/multiqc/main'              addParams( options: multiqc_options   )
+include { BBMAP_BBDUK   } from '../modules/nf-core/modules/bbmap/bbduk/main'          addParams( options: bbduk_options )
 include { BBMAP_ALIGN   } from '../modules/nf-core/modules/bbmap/align/main'          addParams( options: bbmap_align_options )
 include { SAMTOOLS_SORT } from '../modules/nf-core/modules/samtools/sort/main'        addParams( options: samtools_sort_options )
 include { CONCATENATE as CONCATENATE_GFF } from '../modules/local/concatenate'        addParams( options: concatenate_gff_options )
@@ -167,9 +169,20 @@ workflow MAGMAP {
     ch_versions = ch_versions.mix(CREATE_BBMAP_INDEX.out.versions)
 
     //
+    // MODULE: Run BBDuk to clean out whatever sequences the user supplied via params.sequence_filter
+    //
+    if ( params.sequence_filter ) {
+        BBMAP_BBDUK ( FASTQC_TRIMGALORE.out.reads, params.sequence_filter )
+        ch_map_reads = BBMAP_BBDUK.out.reads
+        ch_versions  = ch_versions.mix(BBMAP_BBDUK.out.versions)
+    } else {
+        ch_map_reads = FASTQC_TRIMGALORE.out.reads
+    }
+
+    //
     // MODULE: Run BBMap
     //
-    BBMAP_ALIGN ( FASTQC_TRIMGALORE.out.reads, CREATE_BBMAP_INDEX.out.index )
+    BBMAP_ALIGN ( ch_map_reads, CREATE_BBMAP_INDEX.out.index )
     ch_versions = ch_versions.mix(BBMAP_ALIGN.out.versions)
 
     //

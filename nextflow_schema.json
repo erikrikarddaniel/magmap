@@ -89,6 +89,11 @@
                     "default": "/*.gff.gz",
                     "description": "File suffix for genome gff files",
                     "help_text": "File pattern that is used to search for files (default: `\"/*.gff.gz\"`).\n\nPlease note:\n\n1. The prepended slash (`/`) is required\n2. The star (`*`) is the required wildcard for genome names\n3. The pattern must be enclosed in quotes:\n\n```bash\n--genome_gff_dir \"genomes\" --genomes_gff_ext \"/*.gff.gz\"\n```"
+                },
+                "sequence_filter": {
+                    "type": "string",
+                    "description": "Fasta file with sequences to filter away before mapping.",
+                    "help_text": "Read sequences matching this file will be filtered out from samples with BBDuk before mapping. If no file is specified, BBDuk will not be run."
                 }
             }
         },
