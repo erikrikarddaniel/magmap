@@ -72,8 +72,6 @@ collect_gene_info_options           = modules['collect_gene_info']
 //
 // MODULE: Local to the pipeline
 //
-include { GET_SOFTWARE_VERSIONS } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['tsv':'']] )
-
 include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_CDS   } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_cds )
 include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_RRNA  } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_rrna )
 include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_TRNA  } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_trna )
@@ -122,6 +120,7 @@ include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_CDS   } from '../modules/nf-cor
 include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_RRNA  } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_rrna )
 include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_TRNA  } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_trna )
 include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_TMRNA } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_tmrna )
+include { CUSTOM_DUMPSOFTWAREVERSIONS    } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main' addParams( options: [publish_files : ['_versions.yml':'']] )
 
 //
 // SUBWORKFLOW: Adapted from rnaseq!
@@ -142,7 +141,7 @@ def multiqc_report = []
 
 workflow MAGMAP {
 
-    ch_software_versions = Channel.empty()
+    ch_versions = Channel.empty()
 
     //
     // SUBWORKFLOW: Read in samplesheet, validate and stage input files
@@ -159,26 +158,25 @@ workflow MAGMAP {
         params.skip_fastqc || params.skip_qc,
         params.skip_trimming
     )
-    ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.fastqc_version.first().ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(FASTQC_TRIMGALORE.out.trimgalore_version.first().ifEmpty(null))
+    ch_versions = ch_versions.mix(FASTQC_TRIMGALORE.out.versions)
 
     //
     // SUBWORKFLOW: Concatenate the genome fasta files and create a BBMap index
     //
     CREATE_BBMAP_INDEX ( ch_genome_fnas )
-    ch_software_versions = ch_software_versions.mix(CREATE_BBMAP_INDEX.out.bbmap_version.ifEmpty(null))
+    ch_versions = ch_versions.mix(CREATE_BBMAP_INDEX.out.versions)
 
     //
     // MODULE: Run BBMap
     //
     BBMAP_ALIGN ( FASTQC_TRIMGALORE.out.reads, CREATE_BBMAP_INDEX.out.index )
-    ch_software_versions = ch_software_versions.mix(BBMAP_ALIGN.out.version.ifEmpty(null))
+    ch_versions = ch_versions.mix(BBMAP_ALIGN.out.versions)
 
     //
     // MODULE: Sort BBMap output
     //
     SAMTOOLS_SORT ( BBMAP_ALIGN.out.bam )
-    ch_software_versions = ch_software_versions.mix(SAMTOOLS_SORT.out.version.ifEmpty(null))
+    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions)
 
     //
     // MODULE: Concatenate gff files
@@ -194,25 +192,22 @@ workflow MAGMAP {
     // MODULE: Run featureCounts
     //
     FEATURECOUNTS_CDS ( ch_featurecounts )
-    ch_software_versions = ch_software_versions.mix(FEATURECOUNTS_CDS.out.version.ifEmpty(null))
+    ch_versions = ch_versions.mix(FEATURECOUNTS_CDS.out.versions)
 
     FEATURECOUNTS_RRNA ( ch_featurecounts )
-    ch_software_versions = ch_software_versions.mix(FEATURECOUNTS_RRNA.out.version.ifEmpty(null))
+    ch_versions = ch_versions.mix(FEATURECOUNTS_RRNA.out.versions)
 
     FEATURECOUNTS_TRNA ( ch_featurecounts )
-    ch_software_versions = ch_software_versions.mix(FEATURECOUNTS_TRNA.out.version.ifEmpty(null))
+    ch_versions = ch_versions.mix(FEATURECOUNTS_TRNA.out.versions)
 
     FEATURECOUNTS_TMRNA ( ch_featurecounts )
-    ch_software_versions = ch_software_versions.mix(FEATURECOUNTS_TMRNA.out.version.ifEmpty(null))
+    ch_versions = ch_versions.mix(FEATURECOUNTS_TMRNA.out.versions)
 
     //
     // MODULE: Run collect_featurecounts
     //
     COLLECT_FEATURECOUNTS_CDS   ( FEATURECOUNTS_CDS.out.counts.collect   { it[1] } )
-    ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS_CDS.out.r_version.ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS_CDS.out.dplyr_version.ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS_CDS.out.dtplyr_version.ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(COLLECT_FEATURECOUNTS_CDS.out.datatable_version.ifEmpty(null))
+    ch_versions = ch_versions.mix(COLLECT_FEATURECOUNTS_CDS.out.versions)
 
     COLLECT_FEATURECOUNTS_RRNA  ( FEATURECOUNTS_RRNA.out.counts.collect  { it[1] } )
     COLLECT_FEATURECOUNTS_TRNA  ( FEATURECOUNTS_TRNA.out.counts.collect  { it[1] } )
@@ -222,25 +217,13 @@ workflow MAGMAP {
     // MODULE: Run collect_gene_info
     //
     COLLECT_GENE_INFO ( ch_genome_gffs.collect() )
-    ch_software_versions = ch_software_versions.mix(COLLECT_GENE_INFO.out.r_version.ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(COLLECT_GENE_INFO.out.dplyr_version.ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(COLLECT_GENE_INFO.out.tidyr_version.ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(COLLECT_GENE_INFO.out.dtplyr_version.ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(COLLECT_GENE_INFO.out.datatable_version.ifEmpty(null))
+    ch_versions = ch_versions.mix(COLLECT_GENE_INFO.out.versions)
 
     //
     // MODULE: Pipeline reporting
     //
-    ch_software_versions
-        .map { it -> if (it) [ it.baseName, it ] }
-        .groupTuple()
-        .map { it[1][0] }
-        .flatten()
-        .collect()
-        .set { ch_software_versions }
-
-    GET_SOFTWARE_VERSIONS (
-        ch_software_versions.map { it }.collect()
+    CUSTOM_DUMPSOFTWAREVERSIONS (
+        ch_versions.unique().collectFile()
     )
 
     //
@@ -253,14 +236,13 @@ workflow MAGMAP {
     ch_multiqc_files = ch_multiqc_files.mix(Channel.from(ch_multiqc_config))
     ch_multiqc_files = ch_multiqc_files.mix(ch_multiqc_custom_config.collect().ifEmpty([]))
     ch_multiqc_files = ch_multiqc_files.mix(ch_workflow_summary.collectFile(name: 'workflow_summary_mqc.yaml'))
-    ch_multiqc_files = ch_multiqc_files.mix(GET_SOFTWARE_VERSIONS.out.yaml.collect())
+    ch_multiqc_files = ch_multiqc_files.mix(CUSTOM_DUMPSOFTWAREVERSIONS.out.mqc_yml.collect())
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC_TRIMGALORE.out.trim_zip.collect{it[1]}.ifEmpty([]))
 
     MULTIQC (
         ch_multiqc_files.collect()
     )
     multiqc_report       = MULTIQC.out.report.toList()
-    ch_software_versions = ch_software_versions.mix(MULTIQC.out.version.ifEmpty(null))
 }
 
 /*

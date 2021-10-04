@@ -16,5 +16,5 @@ workflow CREATE_BBMAP_INDEX {
 
     emit: 
     index         = BBMAP_INDEX.out.index
-    bbmap_version = BBMAP_INDEX.out.version
+    versions      = BBMAP_INDEX.out.versions
 }

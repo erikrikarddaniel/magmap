@@ -1,5 +1,5 @@
 // Import generic module functions
-include { initOptions; saveFiles; getSoftwareName } from './functions'
+include { initOptions; saveFiles; getSoftwareName; getProcessName } from './functions'
 
 params.options = [:]
 options        = initOptions(params.options)
@@ -23,11 +23,7 @@ process COLLECT_GENE_INFO {
 
     output:
     path "genes.tsv.gz"          , emit: genefile
-    path "R.version.txt"         , emit: r_version
-    path "dplyr.version.txt"     , emit: dplyr_version
-    path "tidyr.version.txt"     , emit: tidyr_version
-    path "dtplyr.version.txt"    , emit: dtplyr_version
-    path "data.table.version.txt", emit: datatable_version
+    path "versions.yml"          , emit: versions
 
     script:
     def software = getSoftwareName(task.process)
@@ -69,10 +65,16 @@ process COLLECT_GENE_INFO {
         unnest(data) %>%
         write_tsv("genes.tsv.gz")
 
-    write(sprintf("%s.%s", R.Version()\$major, R.Version()\$minor), 'R.version.txt')
-    write(sprintf("%s", packageVersion('dplyr'))                  , 'dplyr.version.txt')
-    write(sprintf("%s", packageVersion('dtplyr'))                 , 'dtplyr.version.txt')
-    write(sprintf("%s", packageVersion('data.table'))             , 'data.table.version.txt')
-    write(sprintf("%s", packageVersion('tidyr'))                  , 'tidyr.version.txt')
+    write(
+        sprintf(
+            "${getProcessName(task.process)}:\n    R: %s.%s\n    dplyr: %s\n    dtplyr: %s\n    tidyr: %s\n    data.table: %s\n",
+            R.Version()\$major, R.Version()\$minor,
+            packageVersion('dplyr'),
+            packageVersion('dtplyr'),
+            packageVersion('tidyr'),
+            packageVersion('data.table')
+        ),
+        'versions.yml'
+    )
     """
 }
