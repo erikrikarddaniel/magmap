@@ -92,6 +92,19 @@
                 }
             }
         },
+        "tool_option_parameters": {
+            "title": "Tool option parameters",
+            "type": "object",
+            "description": "Define options for tools run by the pipeline.",
+            "default": "",
+            "properties": {
+                "usemodulo": {
+                    "type": "boolean",
+                    "description": "Sets BBMap's, low memory, 'usemodulo' parameter",
+                    "help": "According to BBMap's documentation, normal memory use is around 6 bytes per reference base. The 'usemodulo' parameter reduces this to 3 bytes with a slight reduction in sensitivity."
+                }
+            }
+        },
         "read_trimming_options": {
             "title": "Read trimming options",
             "type": "object",
@@ -353,6 +366,9 @@
             "$ref": "#/definitions/reference_genome_options"
         },
         {
+            "$ref": "#/definitions/tool_option_parameters"
+        },
+        {
             "$ref": "#/definitions/read_trimming_options"
         },
         {
@@ -367,6 +383,5 @@
         {
             "$ref": "#/definitions/generic_options"
         }
-    ],
-    "properties": {}
+    ]
 }

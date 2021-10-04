@@ -85,6 +85,7 @@ include { COLLECT_GENE_INFO     } from '../modules/local/collect_gene_info' addP
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
 bbmap_index_options                 = modules['bbmap_index']
+bbmap_index_options.args           += params.usemodulo ? Utils.joinModuleArgs(["usemodulo"]) : ''
 
 include { INPUT_CHECK } from '../subworkflows/local/input_check' addParams( options: [:] )
 include { CREATE_BBMAP_INDEX } from '../subworkflows/local/create_bbmap_index' addParams( bbmap_index_options: bbmap_index_options )
@@ -101,6 +102,7 @@ multiqc_options.args     += params.multiqc_title ? Utils.joinModuleArgs(["--titl
 if (params.save_trimmed)  { trimgalore_options.publish_files.put('fq.gz','') }
 
 bbmap_align_options                      = modules['bbmap_align']
+bbmap_align_options.args                += params.usemodulo ? Utils.joinModuleArgs(["usemodulo"]) : ''
 samtools_sort_options                    = modules['samtools_sort']
 concatenate_gff_options                  = modules['concatenate_gff']
 subread_featurecounts_options_cds        = modules['subread_featurecounts_cds']
