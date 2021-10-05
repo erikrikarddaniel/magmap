@@ -72,6 +72,7 @@ collect_gene_info_options           = modules['collect_gene_info']
 //
 // MODULE: Local to the pipeline
 //
+include { COLLECT_STATS                                        } from '../modules/local/collect_stats.nf'      addParams( [:] )
 include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_CDS   } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_cds )
 include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_RRNA  } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_rrna )
 include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_TRNA  } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_trna )
@@ -231,6 +232,15 @@ workflow MAGMAP {
     //
     COLLECT_GENE_INFO ( ch_genome_gffs.collect() )
     ch_versions = ch_versions.mix(COLLECT_GENE_INFO.out.versions)
+
+    //
+    // MODULE: Overall statistics
+    //
+    COLLECT_STATS(
+        FASTQC_TRIMGALORE.out.trim_log.map { meta, fastq -> meta.id }.collect(),
+        FASTQC_TRIMGALORE.out.trim_log.map { meta, fastq -> fastq[0] }.collect(),
+        BAM_SORT_SAMTOOLS.out.idxstats.collect()  { it[1] }
+    )
 
     //
     // MODULE: Pipeline reporting
