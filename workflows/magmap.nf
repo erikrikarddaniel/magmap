@@ -99,10 +99,10 @@ multiqc_options.args     += params.multiqc_title ? Utils.joinModuleArgs(["--titl
 
 if (params.save_trimmed)  { trimgalore_options.publish_files.put('fq.gz','') }
 
+// Move most of these (all except bbmap_align) to addParams() call directly?
 bbduk_options                            = modules['bbduk']
 bbmap_align_options                      = modules['bbmap_align']
 bbmap_align_options.args                += params.usemodulo ? Utils.joinModuleArgs(["usemodulo"]) : ''
-samtools_sort_options                    = modules['samtools_sort']
 concatenate_gff_options                  = modules['concatenate_gff']
 subread_featurecounts_options_cds        = modules['subread_featurecounts_cds']
 subread_featurecounts_options_rrna       = modules['subread_featurecounts_rrna']
@@ -112,12 +112,12 @@ subread_featurecounts_options_tmrna      = modules['subread_featurecounts_tmrna'
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC        } from '../modules/nf-core/modules/fastqc/main'               addParams( options: modules['fastqc'] )
-include { MULTIQC       } from '../modules/nf-core/modules/multiqc/main'              addParams( options: multiqc_options   )
-include { BBMAP_BBDUK   } from '../modules/nf-core/modules/bbmap/bbduk/main'          addParams( options: bbduk_options )
-include { BBMAP_ALIGN   } from '../modules/nf-core/modules/bbmap/align/main'          addParams( options: bbmap_align_options )
-include { SAMTOOLS_SORT } from '../modules/nf-core/modules/samtools/sort/main'        addParams( options: samtools_sort_options )
-include { CONCATENATE as CONCATENATE_GFF } from '../modules/local/concatenate'        addParams( options: concatenate_gff_options )
+include { FASTQC            } from '../modules/nf-core/modules/fastqc/main'               addParams( options: modules['fastqc'] )
+include { MULTIQC           } from '../modules/nf-core/modules/multiqc/main'              addParams( options: multiqc_options   )
+include { BBMAP_BBDUK       } from '../modules/nf-core/modules/bbmap/bbduk/main'          addParams( options: bbduk_options )
+include { BBMAP_ALIGN       } from '../modules/nf-core/modules/bbmap/align/main'          addParams( options: bbmap_align_options )
+include { BAM_SORT_SAMTOOLS } from '../subworkflows/nf-core/bam_sort_samtools'            addParams( sort_options: modules['samtools_sort_genomes'], index_options: modules['samtools_index_genomes'], stats_options: modules['samtools_index_genomes']      )
+include { CONCATENATE as CONCATENATE_GFF } from '../modules/local/concatenate'            addParams( options: concatenate_gff_options )
 include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_CDS   } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_cds )
 include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_RRNA  } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_rrna )
 include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_TRNA  } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_trna )
@@ -186,10 +186,10 @@ workflow MAGMAP {
     ch_versions = ch_versions.mix(BBMAP_ALIGN.out.versions)
 
     //
-    // MODULE: Sort BBMap output
+    // SUBWORKFLOW: sort, index and run stats on genomes bam
     //
-    SAMTOOLS_SORT ( BBMAP_ALIGN.out.bam )
-    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions)
+    BAM_SORT_SAMTOOLS ( BBMAP_ALIGN.out.bam )
+    ch_versions = ch_versions.mix(BAM_SORT_SAMTOOLS.out.versions)
 
     //
     // MODULE: Concatenate gff files
@@ -197,7 +197,7 @@ workflow MAGMAP {
     CONCATENATE_GFF ( 'genomes.gff.gz', ch_genome_gffs.collect() )
 
     //ch_featurecounts = SAMTOOLS_SORT.out.bam
-    SAMTOOLS_SORT.out.bam
+    BAM_SORT_SAMTOOLS.out.bam
         .combine(CONCATENATE_GFF.out.file)
         .set { ch_featurecounts }
 

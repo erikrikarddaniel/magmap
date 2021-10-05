@@ -21,7 +21,19 @@
             "multiqc": {
                 "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
+            "samtools/flagstat": {
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
+            },
+            "samtools/idxstats": {
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
+            },
+            "samtools/index": {
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
+            },
             "samtools/sort": {
+                "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
+            },
+            "samtools/stats": {
                 "git_sha": "49da8642876ae4d91128168cd0db4f1c858d7792"
             },
             "subread/featurecounts": {
