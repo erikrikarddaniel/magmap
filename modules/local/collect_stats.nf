@@ -25,7 +25,7 @@ process COLLECT_STATS {
 
     output:
     path "overall_stats.tsv"     , emit: overall_stats
-    //path "versions.yml"          , emit: versions
+    path "versions.yml"          , emit: versions
 
     script:
     
@@ -72,31 +72,20 @@ process COLLECT_STATS {
             by = 'sample'
         ) %>%
         write_tsv('overall_stats.tsv')
-    """
-}
-/**
-    #!/usr/bin/env Rscript
-
-    library(data.table)
-    #library(dtplyr)
-    library(readr)
-    library(dplyr)
-    library(stringr)
-
-    setDTthreads($task.cpus)
-
-    tibble(f = Sys.glob('*_trimming_report.txt')) %>%
-        mutate(sample = str_remove(f, '.fastq.*')) %>%
-        write_tsv('overall_stats.tsv')
 
     write(
         sprintf(
-            "${getProcessName(task.process)}:\n    R: %s.%s\n    dplyr: %s\n    dtplyr: %s\n    data.table: %s\n",
+            "${getProcessName(task.process)}:\n    R: %s.%s\n    dplyr: %s\n    dtplyr: %s\n    data.table: %s\n    readr: %s\n    purrr: %s\n    tidyr: %s\n    stringr: %s\n",
             R.Version()\$major, R.Version()\$minor,
             packageVersion('dplyr'),
             packageVersion('dtplyr'),
-            packageVersion('data.table')
+            packageVersion('data.table'),
+            packageVersion('readr'),
+            packageVersion('purrr'),
+            packageVersion('tidyr'),
+            packageVersion('stringr')
         ),
         'versions.yml'
     )
-    **/
+    """
+}

@@ -26,6 +26,10 @@ if ( params.genome_fna_dir && params.genome_fna_ext ) {
     Channel
         .fromPath(Arrays.asList(params.genome_fnas.split(',')))
         .set { ch_genome_fnas }
+} else if ( params.ncbi_accessions ) {
+    Channel
+        .fromPath( params.ncbi_accessions )
+        .set {  ch_ncbi_accessions }
 } else {
     exit 1, "You need to specifiy either a combination of genome fna directory and genome fna extension (\"--genome_fna_dir\" and \"--genome_fna_ext\") or a comma separated list of genome fna files (\"--genome_fnas\")."
 }
@@ -40,7 +44,7 @@ if ( params.genome_gff_dir && params.genome_gff_ext ) {
     Channel
         .fromPath(Arrays.asList(params.genome_gffs.split(',')))
         .set { ch_genome_gffs }
-} else {
+} else if ( ! params.ncbi_accessions ) {
     exit 1, "You need to specifiy either a combination of genome gff directory and genome gff extension (\"--genome_gff_dir\" and \"--genome_gff_ext\") or a comma separated list of genome gff files (\"--genome_gffs\")."
 }
 
@@ -251,6 +255,7 @@ workflow MAGMAP {
         BAM_SORT_SAMTOOLS.out.idxstats.collect()  { it[1] },
         ch_fcs
     )
+    ch_versions = ch_versions.mix(COLLECT_STATS.out.versions)
 
     //
     // MODULE: Pipeline reporting
