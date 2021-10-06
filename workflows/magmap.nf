@@ -67,12 +67,13 @@ collect_featurecounts_options_rrna  = modules['collect_featurecounts_rrna']
 collect_featurecounts_options_trna  = modules['collect_featurecounts_trna']
 collect_featurecounts_options_tmrna = modules['collect_featurecounts_tmrna']
 
+collect_stats_options               = modules['collect_stats']
 collect_gene_info_options           = modules['collect_gene_info']
 
 //
 // MODULE: Local to the pipeline
 //
-include { COLLECT_STATS                                        } from '../modules/local/collect_stats.nf'      addParams( [:] )
+include { COLLECT_STATS                                        } from '../modules/local/collect_stats.nf'      addParams( options: collect_stats_options )
 include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_CDS   } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_cds )
 include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_RRNA  } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_rrna )
 include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_TRNA  } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_trna )
