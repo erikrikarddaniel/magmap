@@ -21,6 +21,7 @@ process COLLECT_STATS {
     val samples
     path trimlogs
     path idxstats
+    path fcs
 
     output:
     path "overall_stats.tsv"     , emit: overall_stats
@@ -54,14 +55,22 @@ process COLLECT_STATS {
             i = map(
                 sample,
                 function(s) {
-                    fread(cmd = sprintf("grep -v '^*' %s*idxstats", s), sep = '\\t', col.names = c('chr', 'length', 'n_mapped', 'n_unmapped')) %>%
+                    fread(cmd = sprintf("grep -v '^*' %s*idxstats", s), sep = '\\t', col.names = c('chr', 'length', 'idxs_n_mapped', 'idxs_n_unmapped')) %>%
                         lazy_dt() %>%
-                        summarise(n_mapped = sum(n_mapped), n_unmapped = sum(n_unmapped)) %>%
+                        summarise(idxs_n_mapped = sum(idxs_n_mapped), idxs_n_unmapped = sum(idxs_n_unmapped)) %>%
                         as_tibble()
                 }
             )
         ) %>%
         unnest(t, i) %>%
+        left_join(
+            tibble(file = Sys.glob('counts*.tsv.gz')) %>%
+                mutate(d = map(file, function(f) fread(cmd = sprintf("gunzip -c %s", f), sep = '\\t'))) %>%
+                as_tibble() %>%
+                unnest(d) %>%
+                group_by(sample) %>% summarise(feature_count = sum(count), .groups = 'drop'),
+            by = 'sample'
+        ) %>%
         write_tsv('overall_stats.tsv')
     """
 }

@@ -227,6 +227,14 @@ workflow MAGMAP {
     COLLECT_FEATURECOUNTS_TRNA  ( FEATURECOUNTS_TRNA.out.counts.collect  { it[1] } )
     COLLECT_FEATURECOUNTS_TMRNA ( FEATURECOUNTS_TMRNA.out.counts.collect { it[1] } )
 
+    ch_fcs = Channel.empty()
+    ch_fcs = ch_fcs.mix(
+        COLLECT_FEATURECOUNTS_CDS.out.counts,
+        COLLECT_FEATURECOUNTS_RRNA.out.counts,
+        COLLECT_FEATURECOUNTS_TRNA.out.counts,
+        COLLECT_FEATURECOUNTS_TMRNA.out.counts
+    ).collect()
+
     //
     // MODULE: Run collect_gene_info
     //
@@ -239,7 +247,8 @@ workflow MAGMAP {
     COLLECT_STATS(
         FASTQC_TRIMGALORE.out.trim_log.map { meta, fastq -> meta.id }.collect(),
         FASTQC_TRIMGALORE.out.trim_log.map { meta, fastq -> fastq[0] }.collect(),
-        BAM_SORT_SAMTOOLS.out.idxstats.collect()  { it[1] }
+        BAM_SORT_SAMTOOLS.out.idxstats.collect()  { it[1] },
+        ch_fcs
     )
 
     //
