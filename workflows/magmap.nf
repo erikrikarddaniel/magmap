@@ -66,6 +66,8 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 
+fetch_ncbi_options                  = modules['fetch_ncbi']
+
 collect_featurecounts_options_cds   = modules['collect_featurecounts_cds']
 collect_featurecounts_options_rrna  = modules['collect_featurecounts_rrna']
 collect_featurecounts_options_trna  = modules['collect_featurecounts_trna']
@@ -77,6 +79,7 @@ collect_gene_info_options           = modules['collect_gene_info']
 //
 // MODULE: Local to the pipeline
 //
+include { FETCH_NCBI                                           } from '../modules/local/fetch_ncbi.nf'         addParams( options: fetch_ncbi_options )
 include { COLLECT_STATS                                        } from '../modules/local/collect_stats.nf'      addParams( options: collect_stats_options )
 include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_CDS   } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_cds )
 include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_RRNA  } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_rrna )
@@ -167,6 +170,15 @@ workflow MAGMAP {
         params.skip_trimming
     )
     ch_versions = ch_versions.mix(FASTQC_TRIMGALORE.out.versions)
+
+    //
+    // MODULE: if asked to, fetch genomes from NCBI
+    //
+    if ( params.ncbi_accessions ) {
+        FETCH_NCBI(ch_ncbi_accessions)
+    }
+    ch_genome_fnas = FETCH_NCBI.out.fnas
+    ch_genome_gffs = FETCH_NCBI.out.gffs
 
     //
     // SUBWORKFLOW: Concatenate the genome fasta files and create a BBMap index

@@ -90,6 +90,11 @@
                     "description": "File suffix for genome gff files",
                     "help_text": "File pattern that is used to search for files (default: `\"/*.gff.gz\"`).\n\nPlease note:\n\n1. The prepended slash (`/`) is required\n2. The star (`*`) is the required wildcard for genome names\n3. The pattern must be enclosed in quotes:\n\n```bash\n--genome_gff_dir \"genomes\" --genomes_gff_ext \"/*.gff.gz\"\n```"
                 },
+                "ncbi_accessions": {
+                    "type": "string",
+                    "description": "File with a list of NCBI genome accessions to use as database.",
+                    "help_text": "Genomes listed in the file will be downloaded as fna.gz, gff.gz and faa.gz files and used to build the search database."
+                },
                 "sequence_filter": {
                     "type": "string",
                     "description": "Fasta file with sequences to filter away before mapping.",
