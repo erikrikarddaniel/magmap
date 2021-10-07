@@ -45,7 +45,7 @@ process COLLECT_FEATURECOUNTS {
             d = purrr::map(
                 f, 
                 function(file) {
-                    fread(file, sep = '\t', skip = 1) %>%
+                    fread(file, sep = '\\t', skip = 1) %>%
                         melt(measure.vars = c(ncol(.)), variable.name = 'sample', value.name = 'count') %>%
                         lazy_dt() %>%
                         filter(count > 0) %>%

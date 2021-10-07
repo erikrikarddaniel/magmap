@@ -48,7 +48,7 @@ process COLLECT_GENE_INFO {
                 f, 
                 function(file) {
                     fread(
-                        cmd = sprintf("gunzip -c %s | grep -E '\t'", file), sep = '\t',
+                        cmd = sprintf("gunzip -c %s | grep -E '\\t'", file), sep = '\\t',
                         col.names = c('chromosome', 'gcaller', 'type', 'from', 'to', 'b', 'strand', 'c', 'rest') 
                     ) %>%
                     select(-b, -c) %>%
@@ -59,9 +59,9 @@ process COLLECT_GENE_INFO {
                 }
             )
         ) %>%
-        mutate(genome = str_remove(f, ".gff.gz")) %>%
+        mutate(genome_name = str_remove(f, ".gff.gz")) %>%
         select(-f) %>%
-        relocate(genome) %>%
+        relocate(genome_name) %>%
         unnest(data) %>%
         write_tsv("genes.tsv.gz")
 
