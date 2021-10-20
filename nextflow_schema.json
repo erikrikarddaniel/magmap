@@ -115,6 +115,37 @@
                 }
             }
         },
+        "feature_count_options": {
+            "title": "Feature count options",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "properties": {
+                "count_cds": {
+                    "type": "boolean",
+                    "description": "Count CDS features",
+                    "default": true
+                },
+                "count_rrna": {
+                    "type": "boolean",
+                    "description": "Count rRNA features",
+                    "help": "This feature is turned off when download of genomes through e.g. `--ncbi_accesions` is enabled, as only CDS features are called on these.",
+                    "default": true
+                },
+                "count_trna": {
+                    "type": "boolean",
+                    "description": "Count tRNA features",
+                    "help": "This feature is turned off when download of genomes through e.g. `--ncbi_accesions` is enabled, as only CDS features are called on these.",
+                    "default": true
+                },
+                "count_tmrna": {
+                    "type": "boolean",
+                    "description": "Count tmRNA features",
+                    "help": "This feature is turned off when download of genomes through e.g. `--ncbi_accesions` is enabled, as only CDS features are called on these.",
+                    "default": true
+                }
+            }
+        },
         "read_trimming_options": {
             "title": "Read trimming options",
             "type": "object",
@@ -377,6 +408,9 @@
         },
         {
             "$ref": "#/definitions/tool_option_parameters"
+        },
+        {
+            "$ref": "#/definitions/feature_count_options"
         },
         {
             "$ref": "#/definitions/read_trimming_options"

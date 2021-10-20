@@ -26,8 +26,10 @@ process CONCATENATE {
 
     script:
     cpus = Math.floor(task.cpus/2).toInteger()
+    cmd  = ( files[0] =~ /.gz$/ ) ? "unpigz -c -p $cpus" : "cat"
     
     """
-    unpigz -c -p $cpus $files ${options.args} | pigz -c -p $cpus > $outfilename
+    #unpigz -c -p $cpus $files ${options.args} | pigz -c -p $cpus > $outfilename
+    $cmd $files ${options.args} | pigz -c -p $cpus > $outfilename
     """
 }

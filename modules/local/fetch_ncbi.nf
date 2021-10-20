@@ -6,7 +6,7 @@ options        = initOptions(params.options)
 
 process FETCH_NCBI {
     tag "$ncbi_accs"
-    label 'process_low'
+    label 'process_long'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
@@ -22,11 +22,9 @@ process FETCH_NCBI {
     path ncbi_accs
 
     output:
-    path "*.fna.gz"    , emit: fnas         // Contigs
-    path "*.gff.gz"    , emit: gffs
-    path "*.faa.gz"    , emit: faas
-    path "failures.txt"        , emit: failures
-    path "versions.yml"        , emit: versions
+    path "*.fna.gz"    , emit: fnas          // Contigs
+    path "failures.txt", emit: failures
+    path "versions.yml", emit: versions
 
     script:
     
@@ -37,18 +35,15 @@ process FETCH_NCBI {
     wget -O 00refseq.index  ftp://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_refseq.txt
     wget -O 10genbank.index ftp://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_genbank.txt
 
-    echo "The following files were not found at NCBI" > failures.txt
+    echo "Contig files for the following accessions were not found at NCBI" > failures.txt
     for a in \$(cat $ncbi_accs); do
-        echo "--> \$a" >> log
-        d=\$(grep \$a *.index | cut -f 20 | head -n 1)
-        for s in gff.gz _genomic.fna.gz faa.gz; do
-            echo "      \$s" >> log
-            \$( wget \${d}/*\${s} )
-            if [ \$(ls \${a}*\${s} | wc -l) -eq 0 ]; then
-                echo "Found no \${d}/*\${s}" >> failures.txt
-            fi
-        done
+        d=\$(grep \$a *.index | cut -f 20 | head -n 1 | sed 's/https/ftp/')
+        echo "--> \$a: \$d <--"
+        \$(wget \${d}/*_genomic.fna.gz)
         rm -f *from_genomic*.fna.gz 
+        if [ \$(ls *_genomic.fna.gz | wc -l) ]; then
+            echo "\$a"
+        fi
     done
 
     cat <<-END_VERSIONS > versions.yml

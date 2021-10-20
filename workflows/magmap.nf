@@ -48,6 +48,18 @@ if ( params.genome_gff_dir && params.genome_gff_ext ) {
     exit 1, "You need to specifiy either a combination of genome gff directory and genome gff extension (\"--genome_gff_dir\" and \"--genome_gff_ext\") or a comma separated list of genome gff files (\"--genome_gffs\")."
 }
 
+// If params.ncbi_accessions is set, turn off counting of non-CDS features
+count_cds = params.count_cds
+if ( ! params.ncbi_accessions ) {
+    count_rrna  = params.count_rrna
+    count_trna  = params.count_trna
+    count_tmrna = params.count_tmrna
+} else {
+    count_rrna  = false
+    count_trna  = false
+    count_tmrna = false
+}
+
 /*
 ========================================================================================
     CONFIG FILES
@@ -66,8 +78,6 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 
-fetch_ncbi_options                  = modules['fetch_ncbi']
-
 collect_featurecounts_options_cds   = modules['collect_featurecounts_cds']
 collect_featurecounts_options_rrna  = modules['collect_featurecounts_rrna']
 collect_featurecounts_options_trna  = modules['collect_featurecounts_trna']
@@ -79,7 +89,6 @@ collect_gene_info_options           = modules['collect_gene_info']
 //
 // MODULE: Local to the pipeline
 //
-include { FETCH_NCBI                                           } from '../modules/local/fetch_ncbi.nf'         addParams( options: fetch_ncbi_options )
 include { COLLECT_STATS                                        } from '../modules/local/collect_stats.nf'      addParams( options: collect_stats_options )
 include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_CDS   } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_cds )
 include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_RRNA  } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_rrna )
@@ -91,11 +100,15 @@ include { COLLECT_GENE_INFO     } from '../modules/local/collect_gene_info' addP
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
+fetch_ncbi_options                  = modules['fetch_ncbi']
+prodigal_options                    = modules['prodigal']
+
 bbmap_index_options                 = modules['bbmap_index']
 bbmap_index_options.args           += params.usemodulo ? Utils.joinModuleArgs(["usemodulo"]) : ''
 
-include { INPUT_CHECK } from '../subworkflows/local/input_check' addParams( options: [:] )
-include { CREATE_BBMAP_INDEX } from '../subworkflows/local/create_bbmap_index' addParams( bbmap_index_options: bbmap_index_options )
+include { INPUT_CHECK         } from '../subworkflows/local/input_check'         addParams(options: [:])
+include { FETCH_NCBI_PRODIGAL } from '../subworkflows/local/fetch_ncbi_prodigal' addParams(fetch_ncbi_options: fetch_ncbi_options, prodigal_options: prodigal_options)
+include { CREATE_BBMAP_INDEX  } from '../subworkflows/local/create_bbmap_index'  addParams(bbmap_index_options: bbmap_index_options)
 
 /*
 ========================================================================================
@@ -172,13 +185,13 @@ workflow MAGMAP {
     ch_versions = ch_versions.mix(FASTQC_TRIMGALORE.out.versions)
 
     //
-    // MODULE: if asked to, fetch genomes from NCBI
+    // SUBWORKFLOW: if asked to, fetch genomes from NCBI, then call ORFs with Prodigal
     //
     if ( params.ncbi_accessions ) {
-        FETCH_NCBI(ch_ncbi_accessions)
+        FETCH_NCBI_PRODIGAL(ch_ncbi_accessions)
+        ch_genome_fnas = FETCH_NCBI_PRODIGAL.out.fnas
+        ch_genome_gffs = FETCH_NCBI_PRODIGAL.out.gffs.map { it[1] }
     }
-    ch_genome_fnas = FETCH_NCBI.out.fnas
-    ch_genome_gffs = FETCH_NCBI.out.gffs
 
     //
     // SUBWORKFLOW: Concatenate the genome fasta files and create a BBMap index
@@ -221,35 +234,51 @@ workflow MAGMAP {
 
     //
     // MODULE: Run featureCounts
-    //
-    FEATURECOUNTS_CDS ( ch_featurecounts )
-    ch_versions = ch_versions.mix(FEATURECOUNTS_CDS.out.versions)
+    // 
+    // Should be a subworkflow...
+    ch_cds_counts = Channel.empty()
+    if ( count_cds ) {
+        FEATURECOUNTS_CDS ( ch_featurecounts )
+        ch_versions = ch_versions.mix(FEATURECOUNTS_CDS.out.versions)
 
-    FEATURECOUNTS_RRNA ( ch_featurecounts )
-    ch_versions = ch_versions.mix(FEATURECOUNTS_RRNA.out.versions)
+        COLLECT_FEATURECOUNTS_CDS   ( FEATURECOUNTS_CDS.out.counts.collect   { it[1] } )
+        ch_versions = ch_versions.mix(COLLECT_FEATURECOUNTS_CDS.out.versions)
+        ch_cds_counts = COLLECT_FEATURECOUNTS_CDS.out.counts
+    }
 
-    FEATURECOUNTS_TRNA ( ch_featurecounts )
-    ch_versions = ch_versions.mix(FEATURECOUNTS_TRNA.out.versions)
+    ch_rrna_counts = Channel.empty()
+    if ( count_rrna ) {
+        FEATURECOUNTS_RRNA ( ch_featurecounts )
+        ch_versions = ch_versions.mix(FEATURECOUNTS_RRNA.out.versions)
 
-    FEATURECOUNTS_TMRNA ( ch_featurecounts )
-    ch_versions = ch_versions.mix(FEATURECOUNTS_TMRNA.out.versions)
+        COLLECT_FEATURECOUNTS_RRNA  ( FEATURECOUNTS_RRNA.out.counts.collect  { it[1] } )
+        ch_rrna_counts = COLLECT_FEATURECOUNTS_RRNA.out.counts
+    }
 
-    //
-    // MODULE: Run collect_featurecounts
-    //
-    COLLECT_FEATURECOUNTS_CDS   ( FEATURECOUNTS_CDS.out.counts.collect   { it[1] } )
-    ch_versions = ch_versions.mix(COLLECT_FEATURECOUNTS_CDS.out.versions)
+    ch_trna_counts = Channel.empty()
+    if ( count_trna ) {
+        FEATURECOUNTS_TRNA ( ch_featurecounts )
+        ch_versions = ch_versions.mix(FEATURECOUNTS_TRNA.out.versions)
 
-    COLLECT_FEATURECOUNTS_RRNA  ( FEATURECOUNTS_RRNA.out.counts.collect  { it[1] } )
-    COLLECT_FEATURECOUNTS_TRNA  ( FEATURECOUNTS_TRNA.out.counts.collect  { it[1] } )
-    COLLECT_FEATURECOUNTS_TMRNA ( FEATURECOUNTS_TMRNA.out.counts.collect { it[1] } )
+        COLLECT_FEATURECOUNTS_TRNA  ( FEATURECOUNTS_TRNA.out.counts.collect  { it[1] } )
+        ch_trna_counts = COLLECT_FEATURECOUNTS_TRNA.out.counts
+    }
+
+    ch_tmrna_counts = Channel.empty()
+    if ( count_tmrna ) {
+        FEATURECOUNTS_TMRNA ( ch_featurecounts )
+        ch_versions = ch_versions.mix(FEATURECOUNTS_TMRNA.out.versions)
+
+        COLLECT_FEATURECOUNTS_TMRNA ( FEATURECOUNTS_TMRNA.out.counts.collect { it[1] } )
+        ch_tmrna_counts = COLLECT_FEATURECOUNTS_TMRNA.out.counts
+    }
 
     ch_fcs = Channel.empty()
     ch_fcs = ch_fcs.mix(
-        COLLECT_FEATURECOUNTS_CDS.out.counts,
-        COLLECT_FEATURECOUNTS_RRNA.out.counts,
-        COLLECT_FEATURECOUNTS_TRNA.out.counts,
-        COLLECT_FEATURECOUNTS_TMRNA.out.counts
+        ch_cds_counts,
+        ch_rrna_counts,
+        ch_trna_counts,
+        ch_tmrna_counts
     ).collect()
 
     //
