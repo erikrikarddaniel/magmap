@@ -146,6 +146,33 @@
                 }
             }
         },
+        "taxonomy_and_genome_quality_options": {
+            "title": "Taxonomy and genome quality options",
+            "type": "object",
+            "description": "Options to specify taxonomy and genome quality",
+            "default": "",
+            "properties": {
+                "gtdb_taxonomy": {
+                    "type": "boolean",
+                    "description": "Attempt to assign GTDB taxonomy to genomes",
+                    "help_text": "Will download metadata files from GTDB and attempt to match with genome names. Only works for genome names that correspond to the NCBI accessions used by GTDB. Completeness and degree of contamination will also be taken from GTDB metadata.\nThis takes precedence over user specified GTDB Tk and CheckM data. If that's not what you want, set this to false (the default)."
+                },
+                "gtdb_arc_metadata": {
+                    "type": "string",
+                    "description": "Path to archaeal GTDB metadata file",
+                    "default": "https://data.gtdb.ecogenomic.org/releases/latest/ar122_metadata.tar.gz",
+                    "hidden": true,
+                    "help_text": "Specify if you want to override the default, the latest release of the `ar122_metadata.tar.gz` file. Your file needs to have the same format, i.e. a tar ball containing a single tsv file."
+                },
+                "gtdb_bac_metadata": {
+                    "type": "string",
+                    "description": "Path to bacterial GTDB metadata file",
+                    "default": "https://data.gtdb.ecogenomic.org/releases/latest/bac120_metadata.tar.gz",
+                    "hidden": true,
+                    "help_text": "Specify if you want to override the default, the latest release of the `bac120_metadata.tar.gz` file. Your file needs to have the same format, i.e. a tar ball containing a single tsv file."
+                }
+            }
+        },
         "read_trimming_options": {
             "title": "Read trimming options",
             "type": "object",
@@ -411,6 +438,9 @@
         },
         {
             "$ref": "#/definitions/feature_count_options"
+        },
+        {
+            "$ref": "#/definitions/taxonomy_and_genome_quality_options"
         },
         {
             "$ref": "#/definitions/read_trimming_options"

@@ -60,6 +60,14 @@ if ( ! params.ncbi_accessions ) {
     count_tmrna = false
 }
 
+// Set up channels for GTDB metadata if the user asks for GTDB metadata annotation
+ch_gtdb_arc_metadata     = Channel.empty()
+ch_gtdb_bac_metadata     = Channel.empty()
+if ( params.gtdb_taxonomy ) {
+    ch_gtdb_arc_metadata = params.gtdb_arc_metadata
+    ch_gtdb_bac_metadata = params.gtdb_bac_metadata
+}
+
 /*
 ========================================================================================
     CONFIG FILES
