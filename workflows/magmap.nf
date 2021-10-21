@@ -86,6 +86,8 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 
+untar_ar122_options                 = modules['untar_ar122']
+untar_bac120_options                = modules['untar_bac120']
 collect_featurecounts_options_cds   = modules['collect_featurecounts_cds']
 collect_featurecounts_options_rrna  = modules['collect_featurecounts_rrna']
 collect_featurecounts_options_trna  = modules['collect_featurecounts_trna']
@@ -97,13 +99,14 @@ collect_gene_info_options           = modules['collect_gene_info']
 //
 // MODULE: Local to the pipeline
 //
-include { COLLECT_STATS                                        } from '../modules/local/collect_stats.nf'      addParams( options: collect_stats_options )
-include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_CDS   } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_cds )
-include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_RRNA  } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_rrna )
-include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_TRNA  } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_trna )
-include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_TMRNA } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_tmrna )
-
-include { COLLECT_GENE_INFO     } from '../modules/local/collect_gene_info' addParams( options: collect_gene_info_options )
+include { UNTAR_GTDB_METADATA as UNTAR_AR122                    } from '../modules/local/untar_gtdb_metadata'   addParams( options: untar_ar122_options )
+include { UNTAR_GTDB_METADATA as UNTAR_BAC120                   } from '../modules/local/untar_gtdb_metadata'   addParams( options: untar_bac120_options )
+include { COLLECT_STATS                                         } from '../modules/local/collect_stats.nf'      addParams( options: collect_stats_options )
+include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_CDS    } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_cds )
+include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_RRNA   } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_rrna )
+include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_TRNA   } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_trna )
+include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_TMRNA  } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_tmrna )
+include { COLLECT_GENE_INFO                                     } from '../modules/local/collect_gene_info'     addParams( options: collect_gene_info_options )
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -142,17 +145,17 @@ subread_featurecounts_options_tmrna      = modules['subread_featurecounts_tmrna'
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC            } from '../modules/nf-core/modules/fastqc/main'               addParams( options: modules['fastqc'] )
-include { MULTIQC           } from '../modules/nf-core/modules/multiqc/main'              addParams( options: multiqc_options   )
-include { BBMAP_BBDUK       } from '../modules/nf-core/modules/bbmap/bbduk/main'          addParams( options: bbduk_options )
-include { BBMAP_ALIGN       } from '../modules/nf-core/modules/bbmap/align/main'          addParams( options: bbmap_align_options )
-include { BAM_SORT_SAMTOOLS } from '../subworkflows/nf-core/bam_sort_samtools'            addParams( sort_options: modules['samtools_sort_genomes'], index_options: modules['samtools_index_genomes'], stats_options: modules['samtools_index_genomes']      )
-include { CONCATENATE as CONCATENATE_GFF } from '../modules/local/concatenate'            addParams( options: concatenate_gff_options )
-include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_CDS   } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_cds )
-include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_RRNA  } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_rrna )
-include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_TRNA  } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_trna )
-include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_TMRNA } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_tmrna )
-include { CUSTOM_DUMPSOFTWAREVERSIONS    } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main' addParams( options: [publish_files : ['_versions.yml':'']] )
+include { FASTQC                                       } from '../modules/nf-core/modules/fastqc/main'                      addParams( options: modules['fastqc'] )
+include { MULTIQC                                      } from '../modules/nf-core/modules/multiqc/main'                     addParams( options: multiqc_options   )
+include { BBMAP_BBDUK                                  } from '../modules/nf-core/modules/bbmap/bbduk/main'                 addParams( options: bbduk_options )
+include { BBMAP_ALIGN                                  } from '../modules/nf-core/modules/bbmap/align/main'                 addParams( options: bbmap_align_options )
+include { BAM_SORT_SAMTOOLS                            } from '../subworkflows/nf-core/bam_sort_samtools'                   addParams( sort_options: modules['samtools_sort_genomes'], index_options: modules['samtools_index_genomes'], stats_options: modules['samtools_index_genomes']      )
+include { CONCATENATE as CONCATENATE_GFF               } from '../modules/local/concatenate'                                addParams( options: concatenate_gff_options )
+include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_CDS   } from '../modules/nf-core/modules/subread/featurecounts/main'       addParams( options: subread_featurecounts_options_cds )
+include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_RRNA  } from '../modules/nf-core/modules/subread/featurecounts/main'       addParams( options: subread_featurecounts_options_rrna )
+include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_TRNA  } from '../modules/nf-core/modules/subread/featurecounts/main'       addParams( options: subread_featurecounts_options_trna )
+include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_TMRNA } from '../modules/nf-core/modules/subread/featurecounts/main'       addParams( options: subread_featurecounts_options_tmrna )
+include { CUSTOM_DUMPSOFTWAREVERSIONS                  } from '../modules/nf-core/modules/custom/dumpsoftwareversions/main' addParams( options: [publish_files : ['_versions.yml':'']] )
 
 //
 // SUBWORKFLOW: Adapted from rnaseq!
@@ -199,6 +202,16 @@ workflow MAGMAP {
         FETCH_NCBI_PRODIGAL(ch_ncbi_accessions)
         ch_genome_fnas = FETCH_NCBI_PRODIGAL.out.fnas
         ch_genome_gffs = FETCH_NCBI_PRODIGAL.out.gffs.map { it[1] }
+    }
+
+    ch_gtdb_ar122_metadata_tsv  = Channel.empty()
+    ch_gtdb_bac120_metadata_tsv = Channel.empty()
+    if ( params.gtdb_taxonomy ) {
+        UNTAR_AR122(ch_gtdb_arc_metadata)
+        ch_gtdb_ar122_metadata_tsv   = UNTAR_AR122.out.metadata
+        UNTAR_BAC120(ch_gtdb_bac_metadata)
+        ch_gtdb_bac120_metadata_tsv  = UNTAR_BAC120.out.metadata
+        ch_versions = ch_versions.mix(UNTAR_AR122.out.versions)
     }
 
     //
