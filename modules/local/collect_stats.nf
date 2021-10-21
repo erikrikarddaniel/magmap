@@ -46,7 +46,7 @@ process COLLECT_STATS {
                 sample, 
                 function(s) {
                     fread(
-                        cmd = sprintf("grep 'Reads written (passing filters)' %s*trimming_report.txt | sed 's/.*: *//' | sed 's/ .*//'", s), 
+                        cmd = sprintf("grep 'Reads written (passing filters)' %s*trimming_report.txt | sed 's/.*: *//' | sed 's/ .*//' | sed 's/,//g'", s), 
                         sep = ',',
                         col.names = c('n_trimmed')
                     )
@@ -62,7 +62,7 @@ process COLLECT_STATS {
                 }
             )
         ) %>%
-        unnest(t, i) %>%
+        unnest(c(t, i)) %>%
         left_join(
             tibble(file = Sys.glob('counts*.tsv.gz')) %>%
                 mutate(d = map(file, function(f) fread(cmd = sprintf("gunzip -c %s", f), sep = '\\t'))) %>%
