@@ -146,6 +146,22 @@
                 }
             }
         },
+        "taxonomy_and_genome_quality_options": {
+            "title": "Taxonomy and genome quality options",
+            "type": "object",
+            "description": "Options to specify taxonomy and genome quality",
+            "default": "",
+            "properties": {
+                "gtdbtk_bac_taxonomy": {
+                    "type": "string",
+                    "description": "Path to bacterial assignment summary (i.e. gtdbtk.bac120.summary.tsv) from GTDB-Tk"
+                },
+                "gtdbtk_arc_taxonomy": {
+                    "type": "string",
+                    "description": "Path to archeal assignment summary (i.e. gtdbtk.ar122.summary.tsv) from GTDB-Tk"
+                }
+            }
+        },
         "read_trimming_options": {
             "title": "Read trimming options",
             "type": "object",
@@ -411,6 +427,9 @@
         },
         {
             "$ref": "#/definitions/feature_count_options"
+        },
+        {
+            "$ref": "#/definitions/taxonomy_and_genome_quality_options"
         },
         {
             "$ref": "#/definitions/read_trimming_options"
