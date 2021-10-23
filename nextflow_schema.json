@@ -152,13 +152,18 @@
             "description": "Options to specify taxonomy and genome quality",
             "default": "",
             "properties": {
-                "gtdbtk_bac_taxonomy": {
+                "checkm_tsv": {
                     "type": "string",
-                    "description": "Path to bacterial assignment summary (i.e. gtdbtk.bac120.summary.tsv) from GTDB-Tk"
+                    "description": "Tab separated file with CheckM results",
+                    "help": "This is the output produced by a command like `checkm qa -o 1 --tab_table -f checkm.tsv chekmdir/lineage.ms checkmdir` after running `checkm lineage_wf genome_dir checkmdir`."
                 },
                 "gtdbtk_arc_taxonomy": {
                     "type": "string",
                     "description": "Path to archeal assignment summary (i.e. gtdbtk.ar122.summary.tsv) from GTDB-Tk"
+                },
+                "gtdbtk_bac_taxonomy": {
+                    "type": "string",
+                    "description": "Path to bacterial assignment summary (i.e. gtdbtk.bac120.summary.tsv) from GTDB-Tk"
                 }
             }
         },
