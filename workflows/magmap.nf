@@ -273,6 +273,7 @@ workflow MAGMAP {
         ch_tmrna_counts = COLLECT_FEATURECOUNTS_TMRNA.out.counts
     }
 
+    // Collect feature counts into one channel for summary
     ch_fcs = Channel.empty()
     ch_fcs = ch_fcs.mix(
         ch_cds_counts,
@@ -286,6 +287,15 @@ workflow MAGMAP {
     //
     COLLECT_GENE_INFO ( ch_genome_gffs.collect() )
     ch_versions = ch_versions.mix(COLLECT_GENE_INFO.out.versions)
+
+    //
+    // SUBWORKFLOW: Deal with taxonomy and genome quality stats
+    //
+    TAXONOMY_GENOME_QUALITY(
+        params.checkm_tsv, 
+        params.gtdbtk_arc_taxonomy, 
+        params.gtdbtk_bac_taxonomy
+    )
 
     //
     // MODULE: Overall statistics
