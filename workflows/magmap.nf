@@ -139,7 +139,8 @@ include { MULTIQC           } from '../modules/nf-core/modules/multiqc/main'    
 include { BBMAP_BBDUK       } from '../modules/nf-core/modules/bbmap/bbduk/main'          addParams( options: bbduk_options )
 include { BBMAP_ALIGN       } from '../modules/nf-core/modules/bbmap/align/main'          addParams( options: bbmap_align_options )
 include { BAM_SORT_SAMTOOLS } from '../subworkflows/nf-core/bam_sort_samtools'            addParams( sort_options: modules['samtools_sort_genomes'], index_options: modules['samtools_index_genomes'], stats_options: modules['samtools_index_genomes']      )
-include { CONCATENATE as CONCATENATE_GFF } from '../modules/local/concatenate'            addParams( options: concatenate_gff_options )
+include { CONCATENATE as FIRST_CONCATENATE_GFF         } from '../modules/local/concatenate'            addParams( options: [:] )
+include { CONCATENATE as CONCATENATE_GFF               } from '../modules/local/concatenate'            addParams( options: concatenate_gff_options )
 include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_CDS   } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_cds )
 include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_RRNA  } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_rrna )
 include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_TRNA  } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_trna )
@@ -225,7 +226,8 @@ workflow MAGMAP {
     //
     // MODULE: Concatenate gff files
     //
-    CONCATENATE_GFF ( 'genomes.gff.gz', ch_genome_gffs.collect() )
+    FIRST_CONCATENATE_GFF ( '', ch_genome_gffs.collate(1000) )
+    CONCATENATE_GFF ( 'genomes.gff.gz', FIRST_CONCATENATE_GFF.out.file.collect() )
 
     //ch_featurecounts = SAMTOOLS_SORT.out.bam
     BAM_SORT_SAMTOOLS.out.bam
