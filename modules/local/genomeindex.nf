@@ -4,8 +4,8 @@ include { initOptions; saveFiles; getSoftwareName; getProcessName } from './func
 params.options = [:]
 options        = initOptions(params.options)
 
-process CONCATENATE {
-    label 'process_high'
+process GENOMEINDEX {
+    label 'process_low'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:[:], publish_by_meta:[]) }
@@ -18,26 +18,21 @@ process CONCATENATE {
     }
 
     input:
-    val  outfile
-    path files
+    path gffs
 
     output:
-    path "${outfilename}", emit: file
+    path "${outfilename}", emit: genomes2id
+    path "versions.yml"  , emit: versions
 
     script:
-    cpus    = Math.floor(task.cpus/2).toInteger()
-
-    // If input is gzipped and options.args is set to something, i.e. filtering will be done, unzip input
-    catcmd  = ( files[0] =~ /.gz$/ && options.args ) ? "unpigz -c -p $cpus" : "cat"
-
-    // If input is gzipped, but not unzipped by catcmd, don't zip again
-    outcmd  = ( files[0] =~ /.gz$/ && catcmd == 'cat' ) ? '' : '| pigz -c -p $cpus'
-
-    // Create a temporary file name to avoid collisions in a second call
-    outfilename = ( outfile != '' ) ? outfile : File.createTempFile('outfile', '.gz').getName()
+    outfilename = File.createTempFile('outfile', '.gz').getName()
+    cpus        = Math.floor(task.cpus/2).toInteger()
     
     """
-    ${catcmd} $files ${options.args} ${outcmd} > $outfilename
+    echo "genome\tID" | gzip -c > ${outfilename}
+    for f in ${gffs}; do
+        unpigz -c -p ${cpus} \$f | grep -o 'ID=[A-Z0-9_]\\+' | sed "s/^/\$f\\t/; s/ID=//; s/.gff.gz//"
+    done | pigz -c -p ${cpus} >> ${outfilename}
 
     cat <<-END_VERSIONS > versions.yml
     ${getProcessName(task.process)}:
