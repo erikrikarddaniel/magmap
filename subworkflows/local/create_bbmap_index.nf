@@ -4,15 +4,17 @@
 
 params.bbmap_index_options = [:]
 
-include { CONCATENATE } from '../../modules/local/concatenate' addParams( [ options: [ publish_files: false ] ] )
-include { BBMAP_INDEX } from '../../modules/nf-core/modules/bbmap/index/main' addParams( options: params.bbmap_index_options )
+include { CONCATENATE as FIRST_CONCATENATE  } from '../../modules/local/concatenate' addParams( [ options: [ publish_files: false ] ] )
+include { CONCATENATE as SECOND_CONCATENATE } from '../../modules/local/concatenate' addParams( [ options: [ publish_files: false ] ] )
+include { BBMAP_INDEX                       } from '../../modules/nf-core/modules/bbmap/index/main' addParams( options: params.bbmap_index_options )
 
 workflow CREATE_BBMAP_INDEX {
     take: ch_genome_fnas
 
     main:
-        CONCATENATE('genomes.fna.gz', ch_genome_fnas.collect()) 
-        BBMAP_INDEX(CONCATENATE.out.file)
+        FIRST_CONCATENATE  ('', ch_genome_fnas.collate(1000)) 
+        SECOND_CONCATENATE ('genomes.fna.gz', FIRST_CONCATENATE.out.file.collect())
+        BBMAP_INDEX        (SECOND_CONCATENATE.out.file)
 
     emit: 
     index         = BBMAP_INDEX.out.index
