@@ -283,7 +283,7 @@ workflow MAGMAP {
     //
     // MODULE: Run collect_gene_info
     //
-    COLLECT_GENE_INFO ( CONCATENATE_GFFS.out.gff )
+    COLLECT_GENE_INFO ( CONCATENATE_GFFS.out.gff, CONCATENATE_GFFS.out.gindex )
     ch_versions = ch_versions.mix(COLLECT_GENE_INFO.out.versions)
 
     //

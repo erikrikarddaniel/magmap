@@ -20,6 +20,7 @@ process COLLECT_GENE_INFO {
 
     input:
     path gff
+    path genome2id
 
     output:
     path "genes.tsv.gz", emit: genefile
@@ -51,6 +52,13 @@ process COLLECT_GENE_INFO {
         separate_rows(rest, sep = ';') %>%
         separate(rest, c('t', 'v'), sep = '=') %>%
         pivot_wider(names_from = t, values_from = v) %>%
+        as.data.table() %>% lazy_dt() %>%
+        inner_join(
+            fread(cmd = "gunzip -c ${genome2id}", sep = '\\t') %>% lazy_dt(),
+            by = 'ID'
+        ) %>%
+        relocate(genome) %>%
+        as_tibble() %>%
         write_tsv("genes.tsv.gz")
 
     write(
