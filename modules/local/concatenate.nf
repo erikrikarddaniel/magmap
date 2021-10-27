@@ -25,12 +25,17 @@ process CONCATENATE {
     path "${outfilename}", emit: file
 
     script:
-    cpus = Math.floor(task.cpus/2).toInteger()
-    cmd  = ( files[0] =~ /.gz$/ ) ? "unpigz -c -p $cpus" : "cat"
+    cpus    = Math.floor(task.cpus/2).toInteger()
+
+    // If input is gzipped and options.args is set to something, i.e. filtering will be done, unzip input
+    catcmd  = ( files[0] =~ /.gz$/ && options.args ) ? "unpigz -c -p $cpus" : "cat"
+
+    // If input is gzipped, but not unzipped by catcmd, don't zip again
+    outcmd  = ( files[0] =~ /.gz$/ && catcmd == 'cat' ) ? '' : '| pigz -c -p $cpus'
 
     outfilename = ( outfile != '' ) ? outfile : File.createTempFile('outfile', '.gz').getName()
     
     """
-    $cmd $files ${options.args} | pigz -c -p $cpus > $outfilename
+    ${catcmd} $files ${options.args} ${outcmd} > $outfilename
     """
 }
