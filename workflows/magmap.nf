@@ -109,6 +109,7 @@ bbmap_index_options.args           += params.usemodulo ? Utils.joinModuleArgs(["
 include { INPUT_CHECK         } from '../subworkflows/local/input_check'         addParams(options: [:])
 include { FETCH_NCBI_PRODIGAL } from '../subworkflows/local/fetch_ncbi_prodigal' addParams(fetch_ncbi_options: fetch_ncbi_options, prodigal_options: prodigal_options)
 include { CREATE_BBMAP_INDEX  } from '../subworkflows/local/create_bbmap_index'  addParams(bbmap_index_options: bbmap_index_options)
+include { CONCATENATE_GFFS    } from '../subworkflows/local/concatenate_gffs'    addParams()
 
 /*
 ========================================================================================
@@ -125,7 +126,6 @@ if (params.save_trimmed)  { trimgalore_options.publish_files.put('fq.gz','') }
 bbduk_options                            = modules['bbduk']
 bbmap_align_options                      = modules['bbmap_align']
 bbmap_align_options.args                += params.usemodulo ? Utils.joinModuleArgs(["usemodulo"]) : ''
-concatenate_gff_options                  = modules['concatenate_gff']
 subread_featurecounts_options_cds        = modules['subread_featurecounts_cds']
 subread_featurecounts_options_rrna       = modules['subread_featurecounts_rrna']
 subread_featurecounts_options_trna       = modules['subread_featurecounts_trna']
@@ -139,8 +139,6 @@ include { MULTIQC           } from '../modules/nf-core/modules/multiqc/main'    
 include { BBMAP_BBDUK       } from '../modules/nf-core/modules/bbmap/bbduk/main'          addParams( options: bbduk_options )
 include { BBMAP_ALIGN       } from '../modules/nf-core/modules/bbmap/align/main'          addParams( options: bbmap_align_options )
 include { BAM_SORT_SAMTOOLS } from '../subworkflows/nf-core/bam_sort_samtools'            addParams( sort_options: modules['samtools_sort_genomes'], index_options: modules['samtools_index_genomes'], stats_options: modules['samtools_index_genomes']      )
-include { CONCATENATE as FIRST_CONCATENATE_GFF         } from '../modules/local/concatenate'            addParams( options: [:] )
-include { CONCATENATE as CONCATENATE_GFF               } from '../modules/local/concatenate'            addParams( options: concatenate_gff_options )
 include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_CDS   } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_cds )
 include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_RRNA  } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_rrna )
 include { SUBREAD_FEATURECOUNTS as FEATURECOUNTS_TRNA  } from '../modules/nf-core/modules/subread/featurecounts/main' addParams( options: subread_featurecounts_options_trna )
@@ -226,12 +224,11 @@ workflow MAGMAP {
     //
     // MODULE: Concatenate gff files
     //
-    FIRST_CONCATENATE_GFF ( '', ch_genome_gffs.collate(1000) )
-    CONCATENATE_GFF ( 'genomes.gff.gz', FIRST_CONCATENATE_GFF.out.file.collect() )
+    CONCATENATE_GFFS ( ch_genome_gffs )
 
     //ch_featurecounts = SAMTOOLS_SORT.out.bam
     BAM_SORT_SAMTOOLS.out.bam
-        .combine(CONCATENATE_GFF.out.file)
+        .combine(CONCATENATE_GFFS.out.gff)
         .set { ch_featurecounts }
 
     //
@@ -286,7 +283,7 @@ workflow MAGMAP {
     //
     // MODULE: Run collect_gene_info
     //
-    COLLECT_GENE_INFO ( ch_genome_gffs.collect() )
+    COLLECT_GENE_INFO ( CONCATENATE_GFFS.out.gff )
     ch_versions = ch_versions.mix(COLLECT_GENE_INFO.out.versions)
 
     //

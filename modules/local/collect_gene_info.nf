@@ -19,11 +19,11 @@ process COLLECT_GENE_INFO {
     }
 
     input:
-    path files
+    path gff
 
     output:
-    path "genes.tsv.gz"          , emit: genefile
-    path "versions.yml"          , emit: versions
+    path "genes.tsv.gz", emit: genefile
+    path "versions.yml", emit: versions
 
     script:
     def software = getSoftwareName(task.process)
@@ -42,27 +42,15 @@ process COLLECT_GENE_INFO {
 
 
     # Read all gff files and separate out the last, ';'-separated field into separate columns
-    tibble(f = Sys.glob('*.gff.gz')) %>%
-        mutate(
-            data = purrr::map(
-                f, 
-                function(file) {
-                    fread(
-                        cmd = sprintf("gunzip -c %s | grep -E '\\t'", file), sep = '\\t',
-                        col.names = c('chromosome', 'gcaller', 'type', 'from', 'to', 'b', 'strand', 'c', 'rest') 
-                    ) %>%
-                    select(-b, -c) %>%
-                    as_tibble() %>%
-                    separate_rows(rest, sep = ';') %>%
-                    separate(rest, c('t', 'v'), sep = '=') %>%
-                    pivot_wider(names_from = t, values_from = v)
-                }
-            )
-        ) %>%
-        mutate(genome_name = str_remove(f, ".gff.gz")) %>%
-        select(-f) %>%
-        relocate(genome_name) %>%
-        unnest(data) %>%
+    fread(
+        cmd = "gunzip -c ${gff} | grep -E '\\t'", sep = '\\t',
+        col.names = c('chromosome', 'gcaller', 'type', 'from', 'to', 'b', 'strand', 'c', 'rest') 
+    ) %>%
+        select(-b, -c) %>%
+        as_tibble() %>%
+        separate_rows(rest, sep = ';') %>%
+        separate(rest, c('t', 'v'), sep = '=') %>%
+        pivot_wider(names_from = t, values_from = v) %>%
         write_tsv("genes.tsv.gz")
 
     write(
