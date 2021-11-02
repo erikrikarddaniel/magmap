@@ -95,7 +95,8 @@ include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_RRNA  } from '../module
 include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_TRNA  } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_trna )
 include { COLLECT_FEATURECOUNTS as COLLECT_FEATURECOUNTS_TMRNA } from '../modules/local/collect_featurecounts' addParams( options: collect_featurecounts_options_tmrna )
 
-include { COLLECT_GENE_INFO     } from '../modules/local/collect_gene_info' addParams( options: collect_gene_info_options )
+include { COLLECT_GENE_INFO                                    } from '../modules/local/collect_gene_info' addParams( options: collect_gene_info_options )
+include { TAXONOMY_GENOME_QUALITY                              } from '../modules/local/taxonomy_genome_quality' addParams( options: modules['taxonomy_genome_quality'] )
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -226,7 +227,6 @@ workflow MAGMAP {
     //
     CONCATENATE_GFFS ( ch_genome_gffs )
 
-    //ch_featurecounts = SAMTOOLS_SORT.out.bam
     BAM_SORT_SAMTOOLS.out.bam
         .combine(CONCATENATE_GFFS.out.gff)
         .set { ch_featurecounts }
@@ -293,7 +293,8 @@ workflow MAGMAP {
     TAXONOMY_GENOME_QUALITY(
         params.checkm_tsv, 
         params.gtdbtk_arc_taxonomy, 
-        params.gtdbtk_bac_taxonomy
+        params.gtdbtk_bac_taxonomy,
+        COLLECT_GENE_INFO.out.genefile
     )
 
     //
