@@ -21,6 +21,7 @@ process COLLECT_GENE_INFO {
     input:
     path gff
     path genome2id
+    path fcs
 
     output:
     path "genes.tsv.gz", emit: genefile
@@ -41,13 +42,25 @@ process COLLECT_GENE_INFO {
 
     setDTthreads($task.cpus)
 
+    # Read the featureCounts files and subset to a set of unique ids
+    fcs <- fread(
+        cmd = "gunzip -c ${fcs} | grep -v '^Geneid' | cut -f 1 | sort -u", 
+        col.names = c('id')
+    ) %>% 
+        data.table()
 
     # Read all gff files and separate out the last, ';'-separated field into separate columns
-    fread(
+    gffs <- fread(
+        #cmd = "gunzip -c ${gff} | grep -E '\\t' | sed 's/.*ID=\\([^;]\\+\\);.*/\\1\\t&/'", sep = '\\t',
         cmd = "gunzip -c ${gff} | grep -E '\\t'", sep = '\\t',
         col.names = c('chromosome', 'gcaller', 'type', 'from', 'to', 'b', 'strand', 'c', 'rest') 
-    ) %>%
-        select(-b, -c) %>%
+    ) %>% lazy_dt() %>%
+        mutate(id = str_replace(rest, 'ID=([^;]+).*', '\\\\1')) %>%
+        semi_join(lazy_dt(fcs), by = 'id') %>%
+        select(-id, -b, -c) %>%
+        as.data.table()
+
+    gffs %>%
         as_tibble() %>%
         separate_rows(rest, sep = ';') %>%
         separate(rest, c('t', 'v'), sep = '=') %>%
