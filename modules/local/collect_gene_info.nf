@@ -60,8 +60,6 @@ process COLLECT_GENE_INFO {
         select(-id, -b, -c) %>%
         as.data.table()
 
-    write(sprintf("*** gffs, nrow: %d ***", nrow(gffs)), stderr())
-
     gffs %>%
         as_tibble() %>%
         separate_rows(rest, sep = ';') %>%
