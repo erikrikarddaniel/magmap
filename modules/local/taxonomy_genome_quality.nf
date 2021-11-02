@@ -47,7 +47,7 @@ process TAXONOMY_GENOME_QUALITY {
         as_tibble()
 
     # CheckM results
-    checkm <- fread("${checkm_tsv}", sep = "\\t") %>%
+    checkm <- fread("${checkm_tsv}", sep = "\\t", colClasses = list(character = 1:29)) %>%
         as_tibble()
 
     # GTDB-Tk results
@@ -59,7 +59,9 @@ process TAXONOMY_GENOME_QUALITY {
 
     checkm %>%
         transmute(
-            genome = `Bin Id`, completeness = Completeness, contamination = Contamination, strain_heterogeneity = `Strain heterogeneity`
+            genome = `Bin Id`, completeness = as.numeric(Completeness), 
+            contamination = as.numeric(Contamination), 
+            strain_heterogeneity = as.numeric(`Strain heterogeneity`)
         ) %>%
         full_join(
             gtdbtk %>%
