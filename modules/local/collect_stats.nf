@@ -18,10 +18,11 @@ process COLLECT_STATS {
     }
 
     input:
-    val samples
+    val  samples
     path trimlogs
     path idxstats
     path fcs
+    path bbduks
 
     output:
     path "overall_stats.tsv"     , emit: overall_stats
@@ -40,8 +41,10 @@ process COLLECT_STATS {
     library(tidyr)
     library(stringr)
 
-    tibble(sample = c("${samples.join('", "')}")) %>%
+    # Collect stats for each sample, create a table in long format that can be appended to
+    t <- tibble(sample = c("${samples.join('", "')}")) %>%
         mutate(
+            # N. after trimming
             t = map(
                 sample, 
                 function(s) {
@@ -63,14 +66,29 @@ process COLLECT_STATS {
             )
         ) %>%
         unnest(c(t, i)) %>%
-        left_join(
+        pivot_longer(2:ncol(.), names_to = 'm', values_to = 'v') %>%
+        union(
+            # Total observation after featureCounts
             tibble(file = Sys.glob('counts*.tsv.gz')) %>%
                 mutate(d = map(file, function(f) fread(cmd = sprintf("gunzip -c %s", f), sep = '\\t'))) %>%
                 as_tibble() %>%
                 unnest(d) %>%
-                group_by(sample) %>% summarise(feature_count = sum(count), .groups = 'drop'),
-            by = 'sample'
-        ) %>%
+                group_by(sample) %>% summarise(feature_count = sum(count), .groups = 'drop') %>%
+                pivot_longer(2:ncol(.), names_to = 'm', values_to = 'v')
+        )
+
+    # Add in stats from BBDuk, if present
+    for ( f in Sys.glob('*.bbduk.log') ) {
+        s = str_remove(f, '.bbduk.log')
+        t <- t %>% union(
+            fread(cmd = sprintf("grep 'Result:' %s | sed 's/Result:[ \\t]*//; s/ reads.*//'", f), col.names = c('v')) %>%
+                as_tibble() %>%
+                mutate(sample = s, m = 'n_non_contaminated')
+        )
+    }
+
+    # Write the table in wide format
+    t %>% pivot_wider(names_from = m, values_from = v) %>%
         write_tsv('overall_stats.tsv')
 
     write(

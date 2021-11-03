@@ -213,10 +213,12 @@ workflow MAGMAP {
     //
     if ( params.sequence_filter ) {
         BBMAP_BBDUK ( FASTQC_TRIMGALORE.out.reads, params.sequence_filter )
-        ch_map_reads = BBMAP_BBDUK.out.reads
-        ch_versions  = ch_versions.mix(BBMAP_BBDUK.out.versions)
+        ch_map_reads  = BBMAP_BBDUK.out.reads
+        ch_bbduk_logs = BBMAP_BBDUK.out.log.map { it[1] }
+        ch_versions   = ch_versions.mix(BBMAP_BBDUK.out.versions)
     } else {
-        ch_map_reads = FASTQC_TRIMGALORE.out.reads
+        ch_map_reads  = FASTQC_TRIMGALORE.out.reads
+        ch_bbduk_logs = []
     }
 
     //
@@ -315,7 +317,8 @@ workflow MAGMAP {
         FASTQC_TRIMGALORE.out.trim_log.map { meta, fastq -> meta.id }.collect(),
         FASTQC_TRIMGALORE.out.trim_log.map { meta, fastq -> fastq[0] }.collect(),
         BAM_SORT_SAMTOOLS.out.idxstats.collect()  { it[1] },
-        ch_fcs
+        ch_fcs,
+        ch_bbduk_logs.collect()
     )
     ch_versions = ch_versions.mix(COLLECT_STATS.out.versions)
 
