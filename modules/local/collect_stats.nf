@@ -41,6 +41,8 @@ process COLLECT_STATS {
     library(tidyr)
     library(stringr)
 
+    TYPE_ORDER = c('n_trimmed', 'n_non_contaminated', 'idxs_n_mapped', 'idxs_n_unmapped', 'n_feature_count')
+
     # Collect stats for each sample, create a table in long format that can be appended to
     t <- tibble(sample = c("${samples.join('", "')}")) %>%
         mutate(
@@ -73,7 +75,7 @@ process COLLECT_STATS {
                 mutate(d = map(file, function(f) fread(cmd = sprintf("gunzip -c %s", f), sep = '\\t'))) %>%
                 as_tibble() %>%
                 unnest(d) %>%
-                group_by(sample) %>% summarise(feature_count = sum(count), .groups = 'drop') %>%
+                group_by(sample) %>% summarise(n_feature_count = sum(count), .groups = 'drop') %>%
                 pivot_longer(2:ncol(.), names_to = 'm', values_to = 'v')
         )
 
@@ -88,7 +90,10 @@ process COLLECT_STATS {
     }
 
     # Write the table in wide format
-    t %>% pivot_wider(names_from = m, values_from = v) %>%
+    t %>% 
+        mutate(m = parse_factor(m, levels = TYPE_ORDER, ordered = TRUE)) %>%
+        arrange(sample, m) %>%
+        pivot_wider(names_from = m, values_from = v) %>%
         write_tsv('overall_stats.tsv')
 
     write(
