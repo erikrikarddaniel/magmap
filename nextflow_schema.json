@@ -111,7 +111,7 @@
                 "usemodulo": {
                     "type": "boolean",
                     "description": "Sets BBMap's, low memory, 'usemodulo' parameter",
-                    "help": "According to BBMap's documentation, normal memory use is around 6 bytes per reference base. The 'usemodulo' parameter reduces this to 3 bytes with a slight reduction in sensitivity."
+                    "help_text": "According to BBMap's documentation, normal memory use is around 6 bytes per reference base. The 'usemodulo' parameter reduces this to 3 bytes with a slight reduction in sensitivity."
                 }
             }
         },
@@ -129,19 +129,19 @@
                 "count_rrna": {
                     "type": "boolean",
                     "description": "Count rRNA features",
-                    "help": "This feature is turned off when download of genomes through e.g. `--ncbi_accesions` is enabled, as only CDS features are called on these.",
+                    "help_text": "This feature is turned off when download of genomes through e.g. `--ncbi_accesions` is enabled, as only CDS features are called on these.",
                     "default": true
                 },
                 "count_trna": {
                     "type": "boolean",
                     "description": "Count tRNA features",
-                    "help": "This feature is turned off when download of genomes through e.g. `--ncbi_accesions` is enabled, as only CDS features are called on these.",
+                    "help_text": "This feature is turned off when download of genomes through e.g. `--ncbi_accesions` is enabled, as only CDS features are called on these.",
                     "default": true
                 },
                 "count_tmrna": {
                     "type": "boolean",
                     "description": "Count tmRNA features",
-                    "help": "This feature is turned off when download of genomes through e.g. `--ncbi_accesions` is enabled, as only CDS features are called on these.",
+                    "help_text": "This feature is turned off when download of genomes through e.g. `--ncbi_accesions` is enabled, as only CDS features are called on these.",
                     "default": true
                 }
             }
