@@ -62,9 +62,9 @@ if ( ! params.ncbi_accessions ) {
 
 // If either of the CheckM and GTDB-Tk options are set, make sure all are and set taxonomy_genome_quality to true
 taxonomy_genome_quality = false
-if ( params.checkm_tsv || params.gtdbtk_arc_taxonomy || params.gtdbtk_bac_taxonomy ) {
-    if ( ! params.checkm_tsv && params.gtdbtk_arc_taxonomy && params.gtdbtk_bac_taxonomy ) {
-        exit 1, "To use CheckM or GTDB-Tk data, you need to set all parameters: checkm_tsv, gtdbtk_arc_taxonomy and gtdbtk_bac_taxonomy. Files with just a header are allowed."
+if ( params.checkm_tsv || params.gtdbtk_taxonomy ) {
+    if ( ! params.checkm_tsv && params.gtdbtk_taxonomy ) {
+        exit 1, "To use CheckM or GTDB-Tk data, you need to set both parameters: checkm_tsv and gtdbtk_taxonomy. Files with just a header are allowed."
     }
     taxonomy_genome_quality = true
 }
@@ -304,8 +304,7 @@ workflow MAGMAP {
     if ( taxonomy_genome_quality ) {
         TAXONOMY_GENOME_QUALITY(
             params.checkm_tsv, 
-            params.gtdbtk_arc_taxonomy, 
-            params.gtdbtk_bac_taxonomy,
+            params.gtdbtk_taxonomy, 
             COLLECT_GENE_INFO.out.genefile
         )
     }

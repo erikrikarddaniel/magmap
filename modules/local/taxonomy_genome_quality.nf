@@ -19,8 +19,7 @@ process TAXONOMY_GENOME_QUALITY {
 
     input:
     path checkm_tsv
-    path gtdbtk_arc
-    path gtdbtk_bac
+    path gtdbtk_tsv
     path genes
 
     output:
@@ -51,10 +50,7 @@ process TAXONOMY_GENOME_QUALITY {
         as_tibble()
 
     # GTDB-Tk results
-    gtdbtk <- fread("${gtdbtk_arc}", sep = "\\t", colClasses = list(character = 1:20)) %>% lazy_dt() %>%
-        union(
-            fread("${gtdbtk_bac}", sep = "\\t", colClasses = list(character = 1:20)) %>% lazy_dt()
-        ) %>%
+    gtdbtk <- fread("${gtdbtk_tsv}", sep = "\\t", colClasses = list(character = 1:20)) %>%
         as_tibble()
 
     checkm %>%
