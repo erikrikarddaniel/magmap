@@ -155,15 +155,17 @@
                 "checkm_tsv": {
                     "type": "string",
                     "description": "Tab separated file with CheckM results",
-                    "help": "This is the output produced by a command like `checkm qa -o 1 --tab_table -f checkm.tsv chekmdir/lineage.ms checkmdir` after running `checkm lineage_wf genome_dir checkmdir`."
+                    "help_text": "This is the output produced by a command like `checkm qa -o 1 --tab_table -f checkm.tsv chekmdir/lineage.ms checkmdir` after running `checkm lineage_wf genome_dir checkmdir`.\nIf you use this parameter, you also need to specify `gtdbtk_arc_taxonomy` and `gtdbtk_bac_taxonomy`. If you don't have them, you can supply tab separated files containing only the following headers: `user_genome` and `classification`."
                 },
                 "gtdbtk_arc_taxonomy": {
                     "type": "string",
-                    "description": "Path to archeal assignment summary (i.e. gtdbtk.ar122.summary.tsv) from GTDB-Tk"
+                    "description": "Path to archeal assignment summary (i.e. gtdbtk.ar122.summary.tsv) from GTDB-Tk.",
+                    "help_text": "This is the result of running a command like `gtdbtk classify_wf --genome_dir genome_bins --out_dir gtdbtk` and selecting the `gtdbtk/identify/gtdbtk.ar122.markers_summary.tsv` for this parameter.\nTo use this parameter, you also need to specify `checkm_tsv` and `gtdbtk_bac_taxonomy`. The former needs to be a tab separated file with at least the following columns: `Bin Id`, `Completeness`, `Contamination` and `Strain heterogeneity`. See help for the `checkm_tsv` for a minimum `gtdbtk_bac_taxonomy` file."
                 },
                 "gtdbtk_bac_taxonomy": {
                     "type": "string",
-                    "description": "Path to bacterial assignment summary (i.e. gtdbtk.bac120.summary.tsv) from GTDB-Tk"
+                    "description": "Path to bacterial assignment summary (i.e. gtdbtk.bac120.summary.tsv) from GTDB-Tk.",
+                    "help_text": "This is the result of running a command like `gtdbtk classify_wf --genome_dir genome_bins --out_dir gtdbtk` and selecting the `gtdbtk/identify/gtdbtk.ar122.markers_summary.tsv` for this parameter.\nTo use this parameter, you also need to specify `checkm_tsv` and `gtdbtk_bac_taxonomy`. The former needs to be a tab separated file with at least the following columns: `Bin Id`, `Completeness`, `Contamination` and `Strain heterogeneity`. See help for the `checkm_tsv` for a minimum `gtdbtk_bac_taxonomy` file."
                 }
             }
         },
