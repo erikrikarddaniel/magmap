@@ -41,7 +41,7 @@ process COLLECT_STATS {
     library(tidyr)
     library(stringr)
 
-    TYPE_ORDER = c('n_trimmed', 'n_non_contaminated', 'idxs_n_mapped', 'idxs_n_unmapped', 'n_feature_count')
+    TYPE_ORDER = c('n_pairs_trimmed', 'n_pairs_non_contaminated', 'n_pairs_mapped', 'n_pairs_unmapped', 'n_pairs_feature_count')
 
     # Collect stats for each sample, create a table in long format that can be appended to
     t <- tibble(sample = c("${samples.join('", "')}")) %>%
@@ -53,16 +53,16 @@ process COLLECT_STATS {
                     fread(
                         cmd = sprintf("grep 'Reads written (passing filters)' %s*trimming_report.txt | sed 's/.*: *//' | sed 's/ .*//' | sed 's/,//g'", s), 
                         sep = ',',
-                        col.names = c('n_trimmed')
+                        col.names = c('n_pairs_trimmed')
                     )
                 }
             ),
             i = map(
                 sample,
                 function(s) {
-                    fread(cmd = sprintf("grep -v '^*' %s*idxstats", s), sep = '\\t', col.names = c('chr', 'length', 'idxs_n_mapped', 'idxs_n_unmapped')) %>%
+                    fread(cmd = sprintf("grep -v '^*' %s*idxstats", s), sep = '\\t', col.names = c('chr', 'length', 'n_pairs_mapped', 'n_pairs_unmapped')) %>%
                         lazy_dt() %>%
-                        summarise(idxs_n_mapped = sum(idxs_n_mapped), idxs_n_unmapped = sum(idxs_n_unmapped)) %>%
+                        summarise(n_pairs_mapped = sum(n_pairs_mapped)/2, n_pairs_unmapped = sum(n_pairs_unmapped)/2) %>%
                         as_tibble()
                 }
             )
@@ -75,7 +75,7 @@ process COLLECT_STATS {
                 mutate(d = map(file, function(f) fread(cmd = sprintf("gunzip -c %s", f), sep = '\\t'))) %>%
                 as_tibble() %>%
                 unnest(d) %>%
-                group_by(sample) %>% summarise(n_feature_count = sum(count), .groups = 'drop') %>%
+                group_by(sample) %>% summarise(n_pairs_feature_count = sum(count), .groups = 'drop') %>%
                 pivot_longer(2:ncol(.), names_to = 'm', values_to = 'v')
         )
 
@@ -85,7 +85,7 @@ process COLLECT_STATS {
         t <- t %>% union(
             fread(cmd = sprintf("grep 'Result:' %s | sed 's/Result:[ \\t]*//; s/ reads.*//'", f), col.names = c('v')) %>%
                 as_tibble() %>%
-                mutate(sample = s, m = 'n_non_contaminated')
+                mutate(sample = s, m = 'n_pairs_non_contaminated', v = v/2)
         )
     }
 
