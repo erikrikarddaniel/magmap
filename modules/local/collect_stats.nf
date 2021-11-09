@@ -41,7 +41,7 @@ process COLLECT_STATS {
     library(tidyr)
     library(stringr)
 
-    TYPE_ORDER = c('n_pairs_trimmed', 'n_pairs_non_contaminated', 'n_pairs_mapped', 'n_pairs_unmapped', 'n_pairs_feature_count')
+    TYPE_ORDER = c('n_pairs_trimmed', 'n_pairs_non_contaminated', 'n_pairs_mapped', 'n_pairs_unmapped', 'n_pairs_features', 'n_pairs_cds')
 
     # Collect stats for each sample, create a table in long format that can be appended to
     t <- tibble(sample = c("${samples.join('", "')}")) %>%
@@ -75,7 +75,14 @@ process COLLECT_STATS {
                 mutate(d = map(file, function(f) fread(cmd = sprintf("gunzip -c %s", f), sep = '\\t'))) %>%
                 as_tibble() %>%
                 unnest(d) %>%
-                group_by(sample) %>% summarise(n_pairs_feature_count = sum(count), .groups = 'drop') %>%
+                group_by(sample) %>% summarise(n_pairs_features = sum(count), .groups = 'drop') %>%
+                pivot_longer(2:ncol(.), names_to = 'm', values_to = 'v')
+        ) %>%
+        union(
+            # Total observation after featureCounts
+            fread(cmd = "gunzip -c counts.CDS.tsv.gz", sep = '\\t') %>%
+                as_tibble() %>%
+                group_by(sample) %>% summarise(n_pairs_cds = sum(count), .groups = 'drop') %>%
                 pivot_longer(2:ncol(.), names_to = 'm', values_to = 'v')
         )
 
