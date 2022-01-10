@@ -15,6 +15,12 @@
 * [MultiQC](https://www.ncbi.nlm.nih.gov/pubmed/27312411/)
     > Ewels P, Magnusson M, Lundin S, Käller M. MultiQC: summarize analysis results for multiple tools and samples in a single report. Bioinformatics. 2016 Oct 1;32(19):3047-8. doi: 10.1093/bioinformatics/btw354. Epub 2016 Jun 16. PubMed PMID: 27312411; PubMed Central PMCID: PMC5039924.
 
+* [BBTools](https://sourceforge.net/projects/bbmap/)
+    > Not published.
+
+* [featureCounts](http://subread.sourceforge.net/)
+    > Liao, Yang, Gordon K. Smyth, and Wei Shi. FeatureCounts: An Efficient General Purpose Program for Assigning Sequence Reads to Genomic Features. Bioinformatics 2014 1 April;30 (7): 923–30. doi: 10.1093/bioinformatics/btt656.
+
 ## Software packaging/containerisation tools
 
 * [Anaconda](https://anaconda.com)
